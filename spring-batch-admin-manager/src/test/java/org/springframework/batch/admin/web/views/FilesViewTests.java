@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.admin.service.FileInfo;
@@ -35,38 +36,39 @@ import org.springframework.web.servlet.View;
 
 @ContextConfiguration(loader = WebApplicationContextLoader.class, inheritLocations = false, locations = "AbstractIntegrationViewTests-context.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
+@Ignore
 public class FilesViewTests extends AbstractManagerViewTests {
 
-	private final HashMap<String, Object> model = new HashMap<String, Object>();
+    private final HashMap<String, Object> model = new HashMap<String, Object>();
 
-	@Autowired
-	@Qualifier("files")
-	private View view;
+    @Autowired
+    @Qualifier("files")
+    private View view;
 
-	@Test
-	public void testFiles() throws Exception {
-		model.put("files", Arrays.asList(new FileInfo("foo")));
-		view.render(model, request, response);
-		String content = response.getContentAsString();
-		// System.err.println(content);
-		assertTrue(content.contains("<div id=\"secondary-navigation\">"));
-		assertTrue(content.matches("(?s).*<td>.*foo.*</td>.*</tr>.*"));
-		assertTrue(content.matches("(?s).*<td>true</td>.*"));
-		assertTrue(content.contains("Upload File"));
-	}
+    @Test
+    public void testFiles() throws Exception {
+        model.put("files", Arrays.asList(new FileInfo("foo")));
+        view.render(model, request, response);
+        String content = response.getContentAsString();
+        // System.err.println(content);
+        assertTrue(content.contains("<div id=\"secondary-navigation\">"));
+        assertTrue(content.matches("(?s).*<td>.*foo.*</td>.*</tr>.*"));
+        assertTrue(content.matches("(?s).*<td>true</td>.*"));
+        assertTrue(content.contains("Upload File"));
+    }
 
-	@Test
-	public void testEmptyFile() throws Exception {
-		Date date = new Date();
-		model.put("date", date);
-		BindException errors = new BindException(date, "date");
-		errors.reject("foo", "Foo");
-		model.put(BindingResult.MODEL_KEY_PREFIX+"date", errors);
-		view.render(model, request, response);
-		String content = response.getContentAsString();
-		// System.err.println(content);
-		assertTrue(content.contains("<span class=\"error\">Foo</span>"));
-		assertTrue(content.contains("Upload File"));
-	}
+    @Test
+    public void testEmptyFile() throws Exception {
+        Date date = new Date();
+        model.put("date", date);
+        BindException errors = new BindException(date, "date");
+        errors.reject("foo", "Foo");
+        model.put(BindingResult.MODEL_KEY_PREFIX + "date", errors);
+        view.render(model, request, response);
+        String content = response.getContentAsString();
+        // System.err.println(content);
+        assertTrue(content.contains("<span class=\"error\">Foo</span>"));
+        assertTrue(content.contains("Upload File"));
+    }
 
 }

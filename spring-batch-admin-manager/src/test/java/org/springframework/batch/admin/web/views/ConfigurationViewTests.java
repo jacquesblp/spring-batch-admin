@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,23 +29,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.WebApplicationContextLoader;
 import org.springframework.web.servlet.View;
 
-@ContextConfiguration(loader = WebApplicationContextLoader.class, inheritLocations = false, locations = {"AbstractIntegrationViewTests-context.xml"})
+@ContextConfiguration(loader = WebApplicationContextLoader.class, inheritLocations = false, locations = {
+        "AbstractIntegrationViewTests-context.xml" })
 @RunWith(SpringJUnit4ClassRunner.class)
+@Ignore
 public class ConfigurationViewTests extends AbstractManagerViewTests {
 
-	private final HashMap<String, Object> model = new HashMap<String, Object>();
+    private final HashMap<String, Object> model = new HashMap<String, Object>();
 
-	@Autowired
-	@Qualifier("configuration")
-	private View view;
+    @Autowired
+    @Qualifier("configuration")
+    private View view;
 
-	@Test
-	public void testConfiguration() throws Exception {
-		view.render(model, request, response);
-		String content = response.getContentAsString();
-		// System.err.println(content);
-		assertTrue(content.contains("<div id=\"secondary-navigation\">"));
-		assertTrue(content.contains("Register XML File"));
-	}
+    @Test
+    public void testConfiguration() throws Exception {
+        view.render(model, request, response);
+        String content = response.getContentAsString();
+        // System.err.println(content);
+        assertTrue(content.contains("<div id=\"secondary-navigation\">"));
+        assertTrue(content.contains("Register XML File"));
+    }
 
 }
