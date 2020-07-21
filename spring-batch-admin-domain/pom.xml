@@ -6,8 +6,8 @@
 	<description><![CDATA[Domain objects as well as serialization utilities used by Spring Batch Admin's REST endpoints.]]></description>
 	<parent>
 		<artifactId>spring-batch-admin-parent</artifactId>
-		<groupId>org.springframework.batch</groupId>
-		<version>2.0.0.BUILD-SNAPSHOT</version>
+		<groupId>au.com.energyq.dms.batch</groupId>
+		<version>5.0.0-SNAPSHOT</version>
 		<relativePath>../spring-batch-admin-parent</relativePath>
 	</parent>
 	<name>Domain</name>
