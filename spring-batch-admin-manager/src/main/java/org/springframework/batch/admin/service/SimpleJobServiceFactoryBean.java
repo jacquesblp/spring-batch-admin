@@ -23,7 +23,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.configuration.ListableJobLocator;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -34,6 +33,7 @@ import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
+import org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStringSerializer;
 import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.batch.core.repository.dao.JdbcJobExecutionDao;
 import org.springframework.batch.core.repository.dao.JdbcStepExecutionDao;
@@ -51,6 +51,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * A factory for a {@link JobService} that makes the configuration of its
  * various ingredients as convenient as possible.
@@ -59,269 +61,279 @@ import org.springframework.util.StringUtils;
  * 
  */
 public class SimpleJobServiceFactoryBean implements FactoryBean<JobService>, InitializingBean {
-	private static final Log logger = LogFactory.getLog(SimpleJobServiceFactoryBean.class);
+    private static final Log logger = LogFactory.getLog(SimpleJobServiceFactoryBean.class);
 
-	private DataSource dataSource;
+    private DataSource dataSource;
 
-	private JdbcOperations jdbcTemplate;
+    private JdbcOperations jdbcTemplate;
 
-	private String databaseType;
+    private String databaseType;
 
-	private String tablePrefix = AbstractJdbcBatchMetadataDao.DEFAULT_TABLE_PREFIX;
+    private String tablePrefix = AbstractJdbcBatchMetadataDao.DEFAULT_TABLE_PREFIX;
 
-	private DataFieldMaxValueIncrementerFactory incrementerFactory;
+    private DataFieldMaxValueIncrementerFactory incrementerFactory;
 
-	private int maxVarCharLength = AbstractJdbcBatchMetadataDao.DEFAULT_EXIT_MESSAGE_LENGTH;
+    private int maxVarCharLength = AbstractJdbcBatchMetadataDao.DEFAULT_EXIT_MESSAGE_LENGTH;
 
-	private LobHandler lobHandler;
+    private LobHandler lobHandler;
 
-	private JobRepository jobRepository;
+    private JobRepository jobRepository;
 
-	private JobLauncher jobLauncher;
+    private JobLauncher jobLauncher;
 
-	private ListableJobLocator jobLocator;
+    private ListableJobLocator jobLocator;
 
-	private JobExplorer jobExplorer;
+    private JobExplorer jobExplorer;
 
-	private ExecutionContextSerializer serializer;
+    private ExecutionContextSerializer serializer;
 
-	private PlatformTransactionManager transactionManager;
+    private PlatformTransactionManager transactionManager;
 
-	public void setTransactionManager(PlatformTransactionManager transactionManager) {
-		this.transactionManager = transactionManager;
-	}
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
+    }
 
-	/**
-	 * A special handler for large objects. The default is usually fine, except
-	 * for some (usually older) versions of Oracle. The default is determined
-	 * from the data base type.
-	 * 
-	 * @param lobHandler the {@link LobHandler} to set
-	 * 
-	 * @see LobHandler
-	 */
-	public void setLobHandler(LobHandler lobHandler) {
-		this.lobHandler = lobHandler;
-	}
+    /**
+     * A special handler for large objects. The default is usually fine, except for
+     * some (usually older) versions of Oracle. The default is determined from the
+     * data base type.
+     * 
+     * @param lobHandler the {@link LobHandler} to set
+     * 
+     * @see LobHandler
+     */
+    public void setLobHandler(LobHandler lobHandler) {
+        this.lobHandler = lobHandler;
+    }
 
-	/**
-	 * Public setter for the length of long string columns in database. Do not
-	 * set this if you haven't modified the schema. Note this value will be used
-	 * for the exit message in both {@link JdbcJobExecutionDao} and
-	 * {@link JdbcStepExecutionDao} and also the short version of the execution
-	 * context in {@link JdbcExecutionContextDao} . For databases with
-	 * multi-byte character sets this number can be smaller (by up to a factor
-	 * of 2 for 2-byte characters) than the declaration of the column length in
-	 * the DDL for the tables.
-	 * 
-	 * @param maxVarCharLength the exitMessageLength to set
-	 */
-	public void setMaxVarCharLength(int maxVarCharLength) {
-		this.maxVarCharLength = maxVarCharLength;
-	}
+    /**
+     * Public setter for the length of long string columns in database. Do not set
+     * this if you haven't modified the schema. Note this value will be used for the
+     * exit message in both {@link JdbcJobExecutionDao} and
+     * {@link JdbcStepExecutionDao} and also the short version of the execution
+     * context in {@link JdbcExecutionContextDao} . For databases with multi-byte
+     * character sets this number can be smaller (by up to a factor of 2 for 2-byte
+     * characters) than the declaration of the column length in the DDL for the
+     * tables.
+     * 
+     * @param maxVarCharLength the exitMessageLength to set
+     */
+    public void setMaxVarCharLength(int maxVarCharLength) {
+        this.maxVarCharLength = maxVarCharLength;
+    }
 
-	/**
-	 * Public setter for the {@link DataSource}.
-	 * @param dataSource a {@link DataSource}
-	 */
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
-	}
+    /**
+     * Public setter for the {@link DataSource}.
+     * 
+     * @param dataSource a {@link DataSource}
+     */
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
-	/**
-	 * Sets the database type.
-	 * @param dbType as specified by
-	 * {@link DefaultDataFieldMaxValueIncrementerFactory}
-	 */
-	public void setDatabaseType(String dbType) {
-		this.databaseType = dbType;
-	}
+    /**
+     * Sets the database type.
+     * 
+     * @param dbType as specified by
+     *               {@link DefaultDataFieldMaxValueIncrementerFactory}
+     */
+    public void setDatabaseType(String dbType) {
+        this.databaseType = dbType;
+    }
 
-	/**
-	 * Sets the table prefix for all the batch meta-data tables.
-	 * @param tablePrefix Prefix for batch meta-data tables
-	 */
-	public void setTablePrefix(String tablePrefix) {
-		this.tablePrefix = tablePrefix;
-	}
+    /**
+     * Sets the table prefix for all the batch meta-data tables.
+     * 
+     * @param tablePrefix Prefix for batch meta-data tables
+     */
+    public void setTablePrefix(String tablePrefix) {
+        this.tablePrefix = tablePrefix;
+    }
 
-	/**
-	 * A factory for incrementers (used to build primary keys for meta data).
-	 * Defaults to {@link DefaultDataFieldMaxValueIncrementerFactory}.
-	 * @param incrementerFactory the incrementer factory to set
-	 */
-	public void setIncrementerFactory(DataFieldMaxValueIncrementerFactory incrementerFactory) {
-		this.incrementerFactory = incrementerFactory;
-	}
+    /**
+     * A factory for incrementers (used to build primary keys for meta data).
+     * Defaults to {@link DefaultDataFieldMaxValueIncrementerFactory}.
+     * 
+     * @param incrementerFactory the incrementer factory to set
+     */
+    public void setIncrementerFactory(DataFieldMaxValueIncrementerFactory incrementerFactory) {
+        this.incrementerFactory = incrementerFactory;
+    }
 
-	public void setJobExplorer(JobExplorer jobExplorer) {
-		this.jobExplorer = jobExplorer;
-	}
+    public void setJobExplorer(JobExplorer jobExplorer) {
+        this.jobExplorer = jobExplorer;
+    }
 
-	/**
-	 * The repository used to store and update jobs and step executions.
-	 * 
-	 * @param jobRepository the {@link JobRepository} to set
-	 */
-	public void setJobRepository(JobRepository jobRepository) {
-		this.jobRepository = jobRepository;
-	}
+    /**
+     * The repository used to store and update jobs and step executions.
+     * 
+     * @param jobRepository the {@link JobRepository} to set
+     */
+    public void setJobRepository(JobRepository jobRepository) {
+        this.jobRepository = jobRepository;
+    }
 
-	/**
-	 * The launcher used to run jobs.
-	 * @param jobLauncher a {@link JobLauncher}
-	 */
-	public void setJobLauncher(JobLauncher jobLauncher) {
-		this.jobLauncher = jobLauncher;
-	}
+    /**
+     * The launcher used to run jobs.
+     * 
+     * @param jobLauncher a {@link JobLauncher}
+     */
+    public void setJobLauncher(JobLauncher jobLauncher) {
+        this.jobLauncher = jobLauncher;
+    }
 
-	/**
-	 * A registry that can be used to locate jobs to run.
-	 * @param jobLocator a {@link JobLocator}
-	 */
-	public void setJobLocator(ListableJobLocator jobLocator) {
-		this.jobLocator = jobLocator;
-	}
+    /**
+     * A registry that can be used to locate jobs to run.
+     * 
+     * @param jobLocator a {@link JobLocator}
+     */
+    public void setJobLocator(ListableJobLocator jobLocator) {
+        this.jobLocator = jobLocator;
+    }
 
-	/**
-	 * A custom implementation of the {@link ExecutionContextSerializer}. The
-	 * default, if not injected, is the
-	 * {@link XStreamExecutionContextStringSerializer}.
-	 * 
-	 * @param serializer
-	 *            the serializer to set
-	 * @see ExecutionContextSerializer
-	 */
-	public void setSerializer(ExecutionContextSerializer serializer) {
-		this.serializer = serializer;
-	}
+    /**
+     * A custom implementation of the {@link ExecutionContextSerializer}. The
+     * default, if not injected, is the
+     * {@link XStreamExecutionContextStringSerializer}.
+     * 
+     * @param serializer the serializer to set
+     * @see ExecutionContextSerializer
+     */
+    public void setSerializer(ExecutionContextSerializer serializer) {
+        this.serializer = serializer;
+    }
 
-	public void afterPropertiesSet() throws Exception {
+    @Override
+    public void afterPropertiesSet() throws Exception {
 
-		Assert.notNull(dataSource, "DataSource must not be null.");
-		Assert.notNull(jobRepository, "JobRepository must not be null.");
-		Assert.notNull(jobLocator, "JobLocator must not be null.");
-		Assert.notNull(jobLauncher, "JobLauncher must not be null.");
-		Assert.notNull(jobExplorer, "JobExplorer must not be null.");
+        Assert.notNull(dataSource, "DataSource must not be null.");
+        Assert.notNull(jobRepository, "JobRepository must not be null.");
+        Assert.notNull(jobLocator, "JobLocator must not be null.");
+        Assert.notNull(jobLauncher, "JobLauncher must not be null.");
+        Assert.notNull(jobExplorer, "JobExplorer must not be null.");
 
-		jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate = new JdbcTemplate(dataSource);
 
-		if (incrementerFactory == null) {
-			incrementerFactory = new DefaultDataFieldMaxValueIncrementerFactory(dataSource);
-		}
+        if (incrementerFactory == null) {
+            incrementerFactory = new DefaultDataFieldMaxValueIncrementerFactory(dataSource);
+        }
 
-		if (databaseType == null) {
-			databaseType = DatabaseType.fromMetaData(dataSource).name();
-			logger.info("No database type set, using meta data indicating: " + databaseType);
-		}
+        if (databaseType == null) {
+            databaseType = DatabaseType.fromMetaData(dataSource).name();
+            logger.info("No database type set, using meta data indicating: " + databaseType);
+        }
 
-		if (lobHandler == null) {
-			lobHandler = new DefaultLobHandler();
-		}
+        if (lobHandler == null) {
+            lobHandler = new DefaultLobHandler();
+        }
 
-		if (serializer == null) {
-			XStreamExecutionContextStringSerializer defaultSerializer = new XStreamExecutionContextStringSerializer();
-			defaultSerializer.afterPropertiesSet();
+        if (serializer == null) {
+            ObjectMapper om = new ObjectMapper();
+            Jackson2ExecutionContextStringSerializer defaultSerializer = new Jackson2ExecutionContextStringSerializer();
+            defaultSerializer.setObjectMapper(om);
 
-			serializer = defaultSerializer;
-		}
+            serializer = defaultSerializer;
+        }
 
-		Assert.isTrue(incrementerFactory.isSupportedIncrementerType(databaseType), "'" + databaseType
-				+ "' is an unsupported database type.  The supported database types are "
-				+ StringUtils.arrayToCommaDelimitedString(incrementerFactory.getSupportedIncrementerTypes()));
+        Assert.isTrue(incrementerFactory.isSupportedIncrementerType(databaseType), "'" + databaseType
+                + "' is an unsupported database type.  The supported database types are "
+                + StringUtils.arrayToCommaDelimitedString(incrementerFactory.getSupportedIncrementerTypes()));
 
-	}
+    }
 
-	protected SearchableJobInstanceDao createJobInstanceDao() throws Exception {
-		JdbcSearchableJobInstanceDao dao = new JdbcSearchableJobInstanceDao();
-		dao.setJdbcTemplate(jdbcTemplate);
-		dao.setJobIncrementer(incrementerFactory.getIncrementer(databaseType, tablePrefix + "JOB_SEQ"));
-		dao.setTablePrefix(tablePrefix);
-		dao.afterPropertiesSet();
-		return dao;
-	}
+    protected SearchableJobInstanceDao createJobInstanceDao() throws Exception {
+        JdbcSearchableJobInstanceDao dao = new JdbcSearchableJobInstanceDao();
+        dao.setJdbcTemplate(jdbcTemplate);
+        dao.setJobIncrementer(incrementerFactory.getIncrementer(databaseType, tablePrefix + "JOB_SEQ"));
+        dao.setTablePrefix(tablePrefix);
+        dao.afterPropertiesSet();
+        return dao;
+    }
 
-	protected SearchableJobExecutionDao createJobExecutionDao() throws Exception {
-		JdbcSearchableJobExecutionDao dao = new JdbcSearchableJobExecutionDao();
-		dao.setDataSource(dataSource);
-		dao.setJobExecutionIncrementer(incrementerFactory.getIncrementer(databaseType, tablePrefix
-				+ "JOB_EXECUTION_SEQ"));
-		dao.setTablePrefix(tablePrefix);
-		dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
-		dao.setExitMessageLength(maxVarCharLength);
-		dao.afterPropertiesSet();
-		return dao;
-	}
+    protected SearchableJobExecutionDao createJobExecutionDao() throws Exception {
+        JdbcSearchableJobExecutionDao dao = new JdbcSearchableJobExecutionDao();
+        dao.setDataSource(dataSource);
+        dao.setJobExecutionIncrementer(incrementerFactory.getIncrementer(databaseType, tablePrefix
+                + "JOB_EXECUTION_SEQ"));
+        dao.setTablePrefix(tablePrefix);
+        dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
+        dao.setExitMessageLength(maxVarCharLength);
+        dao.afterPropertiesSet();
+        return dao;
+    }
 
-	protected SearchableStepExecutionDao createStepExecutionDao() throws Exception {
-		JdbcSearchableStepExecutionDao dao = new JdbcSearchableStepExecutionDao();
-		dao.setDataSource(dataSource);
-		dao.setStepExecutionIncrementer(incrementerFactory.getIncrementer(databaseType, tablePrefix
-				+ "STEP_EXECUTION_SEQ"));
-		dao.setTablePrefix(tablePrefix);
-		dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
-		dao.setExitMessageLength(maxVarCharLength);
-		dao.afterPropertiesSet();
-		return dao;
-	}
+    protected SearchableStepExecutionDao createStepExecutionDao() throws Exception {
+        JdbcSearchableStepExecutionDao dao = new JdbcSearchableStepExecutionDao();
+        dao.setDataSource(dataSource);
+        dao.setStepExecutionIncrementer(incrementerFactory.getIncrementer(databaseType, tablePrefix
+                + "STEP_EXECUTION_SEQ"));
+        dao.setTablePrefix(tablePrefix);
+        dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
+        dao.setExitMessageLength(maxVarCharLength);
+        dao.afterPropertiesSet();
+        return dao;
+    }
 
-	protected ExecutionContextDao createExecutionContextDao() throws Exception {
-		JdbcExecutionContextDao dao = new JdbcExecutionContextDao();
-		dao.setJdbcTemplate(jdbcTemplate);
-		dao.setTablePrefix(tablePrefix);
-		dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
-		if (lobHandler != null) {
-			dao.setLobHandler(lobHandler);
-		}
-		dao.setSerializer(serializer);
-		dao.afterPropertiesSet();
-		// Assume the same length.
-		dao.setShortContextLength(maxVarCharLength);
-		return dao;
-	}
+    protected ExecutionContextDao createExecutionContextDao() throws Exception {
+        JdbcExecutionContextDao dao = new JdbcExecutionContextDao();
+        dao.setJdbcTemplate(jdbcTemplate);
+        dao.setTablePrefix(tablePrefix);
+        dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
+        if (lobHandler != null) {
+            dao.setLobHandler(lobHandler);
+        }
+        dao.setSerializer(serializer);
+        dao.afterPropertiesSet();
+        // Assume the same length.
+        dao.setShortContextLength(maxVarCharLength);
+        return dao;
+    }
 
-	private int determineClobTypeToUse(String databaseType) {
-		if (SYBASE == DatabaseType.valueOf(databaseType.toUpperCase())) {
-			return Types.LONGVARCHAR;
-		}
-		else {
-			return Types.CLOB;
-		}
-	}
+    private int determineClobTypeToUse(String databaseType) {
+        if (SYBASE == DatabaseType.valueOf(databaseType.toUpperCase())) {
+            return Types.LONGVARCHAR;
+        } else {
+            return Types.CLOB;
+        }
+    }
 
-	/**
-	 * Create a {@link SimpleJobService} from the configuration provided.
-	 * 
-	 * @see FactoryBean#getObject()
-	 */
-	public JobService getObject() throws Exception {
-		JsrJobParametersConverter jobParametersConverter = new JsrJobParametersConverter(dataSource);
-		jobParametersConverter.afterPropertiesSet();
-		JsrJobOperator jsrJobOperator = new JsrJobOperator(jobExplorer, jobRepository, jobParametersConverter, transactionManager);
-		jsrJobOperator.afterPropertiesSet();
-		return new SimpleJobService(createJobInstanceDao(), createJobExecutionDao(), createStepExecutionDao(),
-				jobRepository, jobLauncher, jobLocator, createExecutionContextDao(), jsrJobOperator);
-	}
+    /**
+     * Create a {@link SimpleJobService} from the configuration provided.
+     * 
+     * @see FactoryBean#getObject()
+     */
+    @Override
+    public JobService getObject() throws Exception {
+        JsrJobParametersConverter jobParametersConverter = new JsrJobParametersConverter(dataSource);
+        jobParametersConverter.afterPropertiesSet();
+        JsrJobOperator jsrJobOperator = new JsrJobOperator(jobExplorer, jobRepository, jobParametersConverter,
+                transactionManager);
+        jsrJobOperator.afterPropertiesSet();
+        return new SimpleJobService(createJobInstanceDao(), createJobExecutionDao(), createStepExecutionDao(),
+                jobRepository, jobLauncher, jobLocator, createExecutionContextDao(), jsrJobOperator);
+    }
 
-	/**
-	 * Tells the containing bean factory what kind of object is the product of
-	 * {@link #getObject()}.
-	 * 
-	 * @return SimpleJobService
-	 * @see FactoryBean#getObjectType()
-	 */
-	public Class<? extends JobService> getObjectType() {
-		return SimpleJobService.class;
-	}
+    /**
+     * Tells the containing bean factory what kind of object is the product of
+     * {@link #getObject()}.
+     * 
+     * @return SimpleJobService
+     * @see FactoryBean#getObjectType()
+     */
+    @Override
+    public Class<? extends JobService> getObjectType() {
+        return SimpleJobService.class;
+    }
 
-	/**
-	 * Allows optimisation in the containing bean factory.
-	 * 
-	 * @return true
-	 * @see FactoryBean#isSingleton()
-	 */
-	public boolean isSingleton() {
-		return true;
-	}
+    /**
+     * Allows optimisation in the containing bean factory.
+     * 
+     * @return true
+     * @see FactoryBean#isSingleton()
+     */
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

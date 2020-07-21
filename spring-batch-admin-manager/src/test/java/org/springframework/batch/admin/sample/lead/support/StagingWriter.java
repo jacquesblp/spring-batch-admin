@@ -5,7 +5,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
 
 /**
@@ -14,22 +14,23 @@ import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer
  */
 public class StagingWriter implements ItemWriter<String> {
 
-	private SimpleJdbcTemplate jdbcTemplate;
-	
-	private DataFieldMaxValueIncrementer incrementer;
+    private JdbcTemplate jdbcTemplate;
 
-	public void setDataSource(DataSource dataSource) {
-		jdbcTemplate = new SimpleJdbcTemplate(dataSource);
-	}
-	
-	public void setIncrementer(DataFieldMaxValueIncrementer incrementer) {
-		this.incrementer = incrementer;
-	}
+    private DataFieldMaxValueIncrementer incrementer;
 
-	public void write(List<? extends String> values) throws Exception {
-		for (String value : values) {
-			long id = incrementer.nextLongValue();
-			jdbcTemplate.update("INSERT INTO LEAD_INPUTS (ID, DATA) values(?,?)", id, value);			
-		}
-	}
+    public void setDataSource(DataSource dataSource) {
+        jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    public void setIncrementer(DataFieldMaxValueIncrementer incrementer) {
+        this.incrementer = incrementer;
+    }
+
+    @Override
+    public void write(List<? extends String> values) throws Exception {
+        for (String value : values) {
+            long id = incrementer.nextLongValue();
+            jdbcTemplate.update("INSERT INTO LEAD_INPUTS (ID, DATA) values(?,?)", id, value);
+        }
+    }
 }

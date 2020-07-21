@@ -18,8 +18,8 @@ package org.springframework.batch.admin.integration;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.domain.JobInfo;
+import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.DuplicateJobException;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -49,66 +49,66 @@ import org.springframework.integration.annotation.ServiceActivator;
 @MessageEndpoint
 public class JobConfigurationResourceLoader implements ApplicationContextAware {
 
-	private JobLoader jobLoader;
+    private JobLoader jobLoader;
 
-	private JobService jobService;
+    private JobService jobService;
 
-	private ApplicationContext parent;
+    private ApplicationContext parent;
 
-	public void setJobLoader(JobLoader jobLoader) {
-		this.jobLoader = jobLoader;
-	}
+    public void setJobLoader(JobLoader jobLoader) {
+        this.jobLoader = jobLoader;
+    }
 
-	public void setJobService(JobService jobService) {
-		this.jobService = jobService;
-	}
+    public void setJobService(JobService jobService) {
+        this.jobService = jobService;
+    }
 
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.parent = applicationContext;
-	}
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.parent = applicationContext;
+    }
 
-	@ServiceActivator
-	public Collection<JobInfo> loadJobs(Resource resource) throws DuplicateJobException {
+    @ServiceActivator
+    public Collection<JobInfo> loadJobs(Resource resource) throws DuplicateJobException {
 
-		Collection<JobInfo> result = new ArrayList<JobInfo>();
+        Collection<JobInfo> result = new ArrayList<JobInfo>();
 
-		ApplicationContextFactory factory = createApplicationContextFactory(parent, resource);
-		Collection<Job> jobs = jobLoader.reload(factory);
+        ApplicationContextFactory factory = createApplicationContextFactory(parent, resource);
+        Collection<Job> jobs = jobLoader.reload(factory);
 
-		for (Job job : jobs) {
-			String name = job.getName();
-			int count = 0;
-			try {
-				count = jobService.countJobExecutionsForJob(name);
-			}
-			catch (NoSuchJobException e) {
-				// shouldn't happen
-			}
-			boolean launchable = jobService.isLaunchable(name);
-			boolean incrementable = jobService.isIncrementable(name);
-			result.add(new JobInfo(name, count, null, launchable, incrementable));
-		}
+        for (Job job : jobs) {
+            String name = job.getName();
+            int count = 0;
+            try {
+                count = jobService.countJobExecutionsForJob(name);
+            } catch (NoSuchJobException e) {
+                // shouldn't happen
+            }
+            boolean launchable = jobService.isLaunchable(name);
+            boolean incrementable = jobService.isIncrementable(name);
+            result.add(new JobInfo(name, count, null, launchable, incrementable));
+        }
 
-		return result;
+        return result;
 
-	}
+    }
 
-	/**
-	 * Create an application context from the resource provided. Extension point
-	 * for subclasses if they need to customize the context in any way. The
-	 * default uses a {@link GenericApplicationContextFactory}.
-	 * 
-	 * @param parent the parent application context (or null if there is none)
-	 * @param resource the location of the XML configuration
-	 * 
-	 * @return an application context containing jobs
-	 */
-	protected ApplicationContextFactory createApplicationContextFactory(ApplicationContext parent, Resource resource) {
-		GenericApplicationContextFactory applicationContextFactory = new GenericApplicationContextFactory(resource);
-		if (parent != null) {
-			applicationContextFactory.setApplicationContext(parent);
-		}
-		return applicationContextFactory;
-	}
+    /**
+     * Create an application context from the resource provided. Extension point for
+     * subclasses if they need to customize the context in any way. The default uses
+     * a {@link GenericApplicationContextFactory}.
+     * 
+     * @param parent   the parent application context (or null if there is none)
+     * @param resource the location of the XML configuration
+     * 
+     * @return an application context containing jobs
+     */
+    protected ApplicationContextFactory createApplicationContextFactory(ApplicationContext parent, Resource resource) {
+        GenericApplicationContextFactory applicationContextFactory = new GenericApplicationContextFactory(resource);
+        if (parent != null) {
+            applicationContextFactory.setApplicationContext(parent);
+        }
+        return applicationContextFactory;
+    }
 
 }

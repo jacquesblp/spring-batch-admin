@@ -30,16 +30,16 @@ import org.springframework.core.io.Resource;
  */
 public interface FileService {
 
-	FileInfo createFile(String path) throws IOException;
+    FileInfo createFile(String path) throws IOException;
 
-	boolean publish(FileInfo target) throws IOException;
+    boolean publish(FileInfo target) throws IOException;
 
-	List<FileInfo> getFiles(int startFile, int pageSize) throws IOException;
+    List<FileInfo> getFiles(long startFile, int pageSize) throws IOException;
 
-	int countFiles();
+    int countFiles();
 
-	int delete(String pattern) throws IOException;
+    int delete(String pattern) throws IOException;
 
-	Resource getResource(String path);
+    Resource getResource(String path);
 
 }

@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -42,55 +41,55 @@ import org.springframework.batch.test.MetaDataInstanceFactory;
 
 public class JobRestartRequestStringAdapterTests {
 
-	private JobNameToJobRestartRequestAdapter adapter = new JobNameToJobRestartRequestAdapter();
+    private JobNameToJobRestartRequestAdapter adapter = new JobNameToJobRestartRequestAdapter();
 
-	private MapJobRegistry jobRegistry = new MapJobRegistry();
+    private MapJobRegistry jobRegistry = new MapJobRegistry();
 
-	@Mock
-	private JobExplorer jobExplorer;
+    @Mock
+    private JobExplorer jobExplorer;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
-	@Before
-	public void init() throws Exception {
-		MockitoAnnotations.initMocks(this);
-		jobRegistry.register(new ReferenceJobFactory(new SimpleJob("foo")));
-		adapter.setJobLocator(jobRegistry);
-		adapter.setJobExplorer(jobExplorer);
-	}
+    @Before
+    public void init() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        jobRegistry.register(new ReferenceJobFactory(new SimpleJob("foo")));
+        adapter.setJobLocator(jobRegistry);
+        adapter.setJobExplorer(jobExplorer);
+    }
 
-	@Test
-	public void testSimpleJob() throws Exception {
+    @Test
+    public void testSimpleJob() throws Exception {
 
-		JobInstance jobInstance = MetaDataInstanceFactory.createJobInstance("foo", 11L);
-		JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution("foo", 11L, 123L);
-		jobExecution.setEndTime(new Date());
-		jobExecution.setStatus(BatchStatus.FAILED);
+        JobInstance jobInstance = MetaDataInstanceFactory.createJobInstance("foo", 11L);
+        JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution("foo", 11L, 123L);
+        jobExecution.setEndTime(new Date());
+        jobExecution.setStatus(BatchStatus.FAILED);
 
-		when(jobExplorer.getJobInstances("foo", 0, 100)).thenReturn(Arrays.asList(jobInstance));
-		when(jobExplorer.getJobExecutions(jobInstance)).thenReturn(Arrays.asList(jobExecution));
+        when(jobExplorer.getJobInstances("foo", 0, 100)).thenReturn(Arrays.asList(jobInstance));
+        when(jobExplorer.getJobExecutions(jobInstance)).thenReturn(Arrays.asList(jobExecution));
 
-		JobLaunchRequest request = adapter.adapt("foo");
-		assertEquals("foo", request.getJob().getName());
-		assertEquals(0, request.getJobParameters().getParameters().size());
-	}
+        JobLaunchRequest request = adapter.adapt("foo");
+        assertEquals("foo", request.getJob().getName());
+        assertEquals(0, request.getJobParameters().getParameters().size());
+    }
 
-	@Test
-	public void testSimpleJobNotFailed() throws Exception {
+    @Test
+    public void testSimpleJobNotFailed() throws Exception {
 
-		thrown.expect(JobParametersNotFoundException.class);
-		thrown.expectMessage("No failed or stopped execution");
+        thrown.expect(JobParametersNotFoundException.class);
+        thrown.expectMessage("No failed or stopped execution");
 
-		JobInstance jobInstance = MetaDataInstanceFactory.createJobInstance("foo", 11L);
-		JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution("foo", 11L, 123L);
-		jobExecution.setEndTime(new Date());
-		jobExecution.setStatus(BatchStatus.COMPLETED);
+        JobInstance jobInstance = MetaDataInstanceFactory.createJobInstance("foo", 11L);
+        JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution("foo", 11L, 123L);
+        jobExecution.setEndTime(new Date());
+        jobExecution.setStatus(BatchStatus.COMPLETED);
 
-		when(jobExplorer.getJobInstances("foo", 0, 100)).thenReturn(Arrays.asList(jobInstance));
-		when(jobExplorer.getJobExecutions(jobInstance)).thenReturn(Arrays.asList(jobExecution));
-		when(jobExplorer.getJobInstances("foo", 100, 100)).thenReturn(new ArrayList<JobInstance>());
+        when(jobExplorer.getJobInstances("foo", 0, 100)).thenReturn(Arrays.asList(jobInstance));
+        when(jobExplorer.getJobExecutions(jobInstance)).thenReturn(Arrays.asList(jobExecution));
+        when(jobExplorer.getJobInstances("foo", 100, 100)).thenReturn(new ArrayList<JobInstance>());
 
-		adapter.adapt("foo");
-	}
+        adapter.adapt("foo");
+    }
 }

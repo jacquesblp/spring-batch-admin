@@ -15,19 +15,12 @@
  */
 package org.springframework.batch.admin.web.util;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,15 +31,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.support.HandlerMethodResolver;
-import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
-import org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
 
 /**
@@ -125,7 +113,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
     @Override
     public void afterPropertiesSet() throws Exception {
         if (defaultProperties == null || defaultProperties.isEmpty()) {
-            findResources();
+//            findResources();
         } else {
             this.urls = buildUrlsFromProperties(defaultProperties);
             this.defaultResources = buildResourcesFromProperties(defaultProperties, defaultProperties);
@@ -164,115 +152,6 @@ public class HomeController implements ApplicationContextAware, InitializingBean
         return urls;
     }
 
-    private void findResources() {
-        Map<String, Object> handlerMap = new HashMap<String, Object>();
-
-        DefaultAnnotationHandlerMapping annotationMapping = new DefaultAnnotationHandlerMapping();
-        annotationMapping.setApplicationContext(applicationContext);
-        annotationMapping.initApplicationContext();
-        handlerMap.putAll(annotationMapping.getHandlerMap());
-
-        BeanNameUrlHandlerMapping beanMapping = new BeanNameUrlHandlerMapping();
-        beanMapping.setApplicationContext(applicationContext);
-        beanMapping.initApplicationContext();
-        handlerMap.putAll(beanMapping.getHandlerMap());
-
-        this.urls = findUniqueUrls(handlerMap.keySet());
-        this.defaultResources = findMethods(handlerMap, this.urls);
-        this.jsonResources = new ArrayList<ResourceInfo>();
-        for (Iterator<ResourceInfo> iterator = this.defaultResources.iterator(); iterator.hasNext();) {
-            ResourceInfo info = iterator.next();
-            if (info.getUrl().endsWith(".json")) {
-                iterator.remove();
-                this.jsonResources.add(info);
-            }
-        }
-
-    }
-
-    private List<ResourceInfo> findMethods(Map<String, Object> handlerMap, Set<String> urls) {
-
-        SortedSet<ResourceInfo> result = new TreeSet<ResourceInfo>();
-
-        for (String key : urls) {
-
-            Object handler = handlerMap.get(key);
-            Class<?> handlerType = ClassUtils.getUserClass(handler);
-            HandlerMethodResolver resolver = new HandlerMethodResolver();
-            resolver.init(handlerType);
-
-            String[] typeMappings = null;
-            RequestMapping typeMapping = AnnotationUtils.findAnnotation(handlerType, RequestMapping.class);
-            if (typeMapping != null) {
-                typeMappings = typeMapping.value();
-            }
-
-            Set<Method> handlerMethods = resolver.getHandlerMethods();
-            for (Method method : handlerMethods) {
-
-                RequestMapping mapping = method.getAnnotation(RequestMapping.class);
-
-                Collection<String> computedMappings = new HashSet<String>();
-                if (typeMappings != null) {
-                    computedMappings.addAll(Arrays.asList(typeMappings));
-                }
-
-                for (String path : mapping.value()) {
-                    if (typeMappings != null) {
-                        for (String parent : computedMappings) {
-                            if (parent.endsWith("/")) {
-                                parent = parent.substring(0, parent.length() - 1);
-                            }
-                            computedMappings.add(parent + path);
-                        }
-                    } else {
-                        computedMappings.add(path);
-                    }
-                }
-
-                logger.debug("Analysing mappings for method:" + method.getName() + ", key:" + key
-                        + ", computed mappings: " + computedMappings);
-                if (computedMappings.contains(key)) {
-                    RequestMethod[] methods = mapping.method();
-                    if (methods != null && methods.length > 0) {
-                        for (RequestMethod requestMethod : methods) {
-                            logger.debug(
-                                    "Added explicit mapping for path=" + key + "to RequestMethod=" + requestMethod);
-                            result.add(new ResourceInfo(key, requestMethod));
-                        }
-                    } else {
-                        logger.debug("Added implicit mapping for path=" + key + "to RequestMethod=GET");
-                        result.add(new ResourceInfo(key, RequestMethod.GET));
-                    }
-                }
-
-            }
-
-            if (handlerMethods.isEmpty()) {
-                result.add(new ResourceInfo(key, RequestMethod.GET));
-            }
-
-        }
-
-        return new ArrayList<ResourceInfo>(result);
-
-    }
-
-    private Set<String> findUniqueUrls(Collection<String> inputs) {
-        Set<String> result = new HashSet<String>(inputs);
-        for (String url : inputs) {
-            String extended = url + ".*";
-            if (inputs.contains(extended)) {
-                result.remove(extended);
-            }
-            extended = url + "/";
-            if (inputs.contains(extended)) {
-                result.remove(extended);
-            }
-        }
-        return result;
-    }
-
     /**
      * Inspect the handler mapping at the level of HTTP {@link RequestMethod}. Each
      * URI pattern that is mapped can be mapped to multiple request methods. If the
@@ -294,10 +173,12 @@ public class HomeController implements ApplicationContextAware, InitializingBean
         }
         model.addAttribute("servletPath", servletPath);
         List<ResourceInfo> resources = new ArrayList<ResourceInfo>();
-        if (!request.getRequestURI().endsWith(".json")) {
+        if (!request.getRequestURI().endsWith(".json") && defaultResources != null) {
             resources.addAll(defaultResources);
         }
-        resources.addAll(jsonResources);
+        if (jsonResources != null) {
+            resources.addAll(jsonResources);
+        }
         model.addAttribute("resources", resources);
         return "home";
     }

@@ -148,7 +148,7 @@ public class LocalFileService implements FileService, InitializingBean, Resource
     }
 
     @Override
-    public List<FileInfo> getFiles(int startFile, int pageSize) throws IOException {
+    public List<FileInfo> getFiles(long startFile, int pageSize) throws IOException {
 
         List<FileInfo> files = getFiles("**");
 
@@ -163,7 +163,8 @@ public class LocalFileService implements FileService, InitializingBean, Resource
             count++;
         }
 
-        return new ArrayList<FileInfo>(files.subList(startFile, Math.min(startFile + pageSize, files.size())));
+        return new ArrayList<FileInfo>(
+                files.subList((int) startFile, (int) Math.min(startFile + pageSize, files.size())));
 
     }
 
@@ -238,7 +239,12 @@ public class LocalFileService implements FileService, InitializingBean, Resource
         List<FileInfo> files = getFiles(pattern.getPattern());
         FileInfo info = files.isEmpty() ? pattern : files.get(0);
         File file = new File(outputDir, info.getFileName());
-        return new FileServiceResource(file, path);
+        try {
+            return new FileServiceResource(file, path);
+        } catch (RuntimeException e) {
+            logger.error("Caught exception constructing FileServiceResource for " + path, e);
+            return null;
+        }
 
     }
 

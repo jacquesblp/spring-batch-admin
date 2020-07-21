@@ -23,12 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.junit.Before;
-
 import org.springframework.batch.admin.domain.JobExecutionInfoResource;
 import org.springframework.batch.admin.domain.JobInstanceInfoResource;
 import org.springframework.batch.admin.domain.StepExecutionHistory;
@@ -59,9 +54,14 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.thoughtworks.xstream.converters.SingleValueConverter;
+
 /**
- * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
- * memory) dependencies before each test.
+ * Base class for Controller layer tests. Takes care of resetting the mocked (be
+ * them mockito mocks or <i>e.g.</i> in memory) dependencies before each test.
  * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
@@ -69,86 +69,86 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ContextConfiguration(classes = { AbstractControllerIntegrationTest.LegacyMvcConfiguration.class })
 public class AbstractControllerIntegrationTest {
 
-	protected MockMvc mockMvc;
+    protected MockMvc mockMvc;
 
-	@Configuration
-	@EnableWebMvc
-	protected static class LegacyMvcConfiguration extends WebMvcConfigurerAdapter {
+    @Configuration
+    @EnableWebMvc
+    protected static class LegacyMvcConfiguration extends WebMvcConfigurerAdapter {
 
-		@Override
-		public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-			Map<String, Class> aliases = new HashMap<String, Class>();
-			aliases.put("jobInstanceInfo", JobInstanceInfoResource.class);
-			aliases.put("jobExecutionInfo", JobExecutionInfoResource.class);
-			aliases.put("link", Link.class);
-			aliases.put("jobExecution", JobExecution.class);
-			aliases.put("jobParameter", JobParameter.class);
-			aliases.put("stepExecution", StepExecution.class);
+        @Override
+        public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+            Map<String, Class> aliases = new HashMap<String, Class>();
+            aliases.put("jobInstanceInfo", JobInstanceInfoResource.class);
+            aliases.put("jobExecutionInfo", JobExecutionInfoResource.class);
+            aliases.put("link", Link.class);
+            aliases.put("jobExecution", JobExecution.class);
+            aliases.put("jobParameter", JobParameter.class);
+            aliases.put("stepExecution", StepExecution.class);
 
-			Map<Class<?>, String> omittedFields = new HashMap<Class<?>, String>();
+            Map<Class<?>, String> omittedFields = new HashMap<Class<?>, String>();
 
-			omittedFields.put(JobExecutionInfoResource.class, "dateFormat");
-			omittedFields.put(JobExecutionInfoResource.class, "durationFormat");
-			omittedFields.put(JobExecutionInfoResource.class, "timeFormat");
-			omittedFields.put(JobExecutionInfoResource.class, "converter");
-			omittedFields.put(StepExecution.class, "jobExecution");
-			omittedFields.put(Link.class, "template");
+            omittedFields.put(JobExecutionInfoResource.class, "dateFormat");
+            omittedFields.put(JobExecutionInfoResource.class, "durationFormat");
+            omittedFields.put(JobExecutionInfoResource.class, "timeFormat");
+            omittedFields.put(JobExecutionInfoResource.class, "converter");
+            omittedFields.put(StepExecution.class, "jobExecution");
+            omittedFields.put(Link.class, "template");
 
-			XStreamMarshaller marshaller = new XStreamMarshaller();
-			marshaller.setAliasesByType(aliases);
-			marshaller.setOmittedFields(omittedFields);
-			marshaller.setConverters(new SingleValueConverter() {
-				@Override
-				public String toString(Object obj) {
-					return ((TimeZone) obj).getID();
-				}
+            XStreamMarshaller marshaller = new XStreamMarshaller();
+            marshaller.setAliasesByType(aliases);
+            marshaller.setOmittedFields(omittedFields);
+            marshaller.setConverters(new SingleValueConverter() {
+                @Override
+                public String toString(Object obj) {
+                    return ((TimeZone) obj).getID();
+                }
 
-				@Override
-				public Object fromString(String str) {
-					return TimeZone.getTimeZone(str);
-				}
+                @Override
+                public Object fromString(String str) {
+                    return TimeZone.getTimeZone(str);
+                }
 
-				@Override
-				public boolean canConvert(Class type) {
-					return TimeZone.class.isAssignableFrom(type);
-				}
-			});
+                @Override
+                public boolean canConvert(Class type) {
+                    return TimeZone.class.isAssignableFrom(type);
+                }
+            });
 
-			marshaller.afterPropertiesSet();
+            marshaller.afterPropertiesSet();
 
-			MarshallingHttpMessageConverter converter = new MarshallingHttpMessageConverter(marshaller);
+            MarshallingHttpMessageConverter converter = new MarshallingHttpMessageConverter(marshaller);
 
-			converters.add(converter);
+            converters.add(converter);
 
-			MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
+            MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
 
-			ObjectMapper objectMapper = jsonConverter.getObjectMapper();
-			objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-			objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
-			objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-			objectMapper.addMixInAnnotations(JobParameters.class, JobParametersJacksonMixIn.class);
-			objectMapper.addMixInAnnotations(JobParameter.class, JobParameterJacksonMixIn.class);
-			objectMapper.addMixInAnnotations(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
-			objectMapper.addMixInAnnotations(ExitStatus.class, ExitStatusJacksonMixIn.class);
+            ObjectMapper objectMapper = jsonConverter.getObjectMapper();
+            objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+            objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
+            objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+            objectMapper.addMixInAnnotations(JobParameters.class, JobParametersJacksonMixIn.class);
+            objectMapper.addMixInAnnotations(JobParameter.class, JobParameterJacksonMixIn.class);
+            objectMapper.addMixInAnnotations(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
+            objectMapper.addMixInAnnotations(ExitStatus.class, ExitStatusJacksonMixIn.class);
 
-			converters.add(jsonConverter);
-		}
-	}
+            converters.add(jsonConverter);
+        }
+    }
 
-	@Autowired
-	private WebApplicationContext wac;
+    @Autowired
+    private WebApplicationContext wac;
 
-	@Before
-	public void setupMockMVC() {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).defaultRequest(
-				get("/").accept(MediaType.APPLICATION_JSON)).build();
-	}
+    @Before
+    public void setupMockMVC() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).defaultRequest(
+                get("/").accept(MediaType.APPLICATION_JSON)).build();
+    }
 
-	// Instance repositories
-	@Autowired
-	protected JobRepository jobRepository;
+    // Instance repositories
+    @Autowired
+    protected JobRepository jobRepository;
 
-	@Autowired
-	protected JobService jobService;
+    @Autowired
+    protected JobService jobService;
 
 }
