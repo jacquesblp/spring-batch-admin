@@ -21,8 +21,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.batch.core.JobInstance;
-import org.springframework.hateoas.ResourceSupport;
-
+import org.springframework.hateoas.RepresentationModel;
 
 /**
  * Represents JobInstance info resource.
@@ -31,36 +30,36 @@ import org.springframework.hateoas.ResourceSupport;
  * @since 2.0
  */
 @XmlRootElement
-public class JobInstanceInfoResource extends ResourceSupport {
+public class JobInstanceInfoResource extends RepresentationModel<JobInstanceInfoResource> {
 
-	private String jobName;
+    private String jobName;
 
-	private long instanceId;
+    private long instanceId;
 
-	private List<JobExecutionInfoResource> jobExecutions;
+    private List<JobExecutionInfoResource> jobExecutions;
 
-	/**
-	 * Default constructor for serialization frameworks.
-	 */
-	protected JobInstanceInfoResource() {
+    /**
+     * Default constructor for serialization frameworks.
+     */
+    protected JobInstanceInfoResource() {
 
-	}
+    }
 
-	public JobInstanceInfoResource(JobInstance jobInstance, List<JobExecutionInfoResource> jobExecutionInfoResources) {
-		this.jobName = jobInstance.getJobName();
-		this.instanceId = jobInstance.getInstanceId();
-		this.jobExecutions = jobExecutionInfoResources;
-	}
+    public JobInstanceInfoResource(JobInstance jobInstance, List<JobExecutionInfoResource> jobExecutionInfoResources) {
+        this.jobName = jobInstance.getJobName();
+        this.instanceId = jobInstance.getInstanceId();
+        this.jobExecutions = jobExecutionInfoResources;
+    }
 
-	public String getJobName() {
-		return jobName;
-	}
+    public String getJobName() {
+        return jobName;
+    }
 
-	public List<JobExecutionInfoResource> getJobExecutions() {
-		return this.jobExecutions;
-	}
+    public List<JobExecutionInfoResource> getJobExecutions() {
+        return this.jobExecutions;
+    }
 
-	public long getInstanceId() {
-		return instanceId;
-	}
+    public long getInstanceId() {
+        return instanceId;
+    }
 }

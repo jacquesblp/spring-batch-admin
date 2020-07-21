@@ -19,30 +19,30 @@ package org.springframework.batch.admin.web.resource;
 import org.springframework.batch.admin.domain.StepExecutionProgressInfo;
 import org.springframework.batch.admin.domain.StepExecutionProgressInfoResource;
 import org.springframework.batch.admin.web.BatchStepExecutionsController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
- * Knows how to build a REST resource out of our domain model {@link org.springframework.batch.admin.domain.StepExecutionProgressInfo}.
+ * Knows how to build a REST resource out of our domain model
+ * {@link org.springframework.batch.admin.domain.StepExecutionProgressInfo}.
  * 
  * @author Ilayaperumal Gopinathan
  * @since 2.0
  */
 public class StepExecutionProgressInfoResourceAssembler extends
-		ResourceAssemblerSupport<StepExecutionProgressInfo, StepExecutionProgressInfoResource> {
+        RepresentationModelAssemblerSupport<StepExecutionProgressInfo, StepExecutionProgressInfoResource> {
 
-	public StepExecutionProgressInfoResourceAssembler() {
-		super(BatchStepExecutionsController.class, StepExecutionProgressInfoResource.class);
-	}
+    public StepExecutionProgressInfoResourceAssembler() {
+        super(BatchStepExecutionsController.class, StepExecutionProgressInfoResource.class);
+    }
 
-	@Override
-	public StepExecutionProgressInfoResource toResource(StepExecutionProgressInfo entity) {
-		return createResourceWithId(entity.getStepExecutionId(), entity, entity.getStepExecution().getJobExecutionId());
-	}
+    @Override
+    public StepExecutionProgressInfoResource toModel(StepExecutionProgressInfo entity) {
+        return createModelWithId(entity.getStepExecutionId(), entity, entity.getStepExecution().getJobExecutionId());
+    }
 
-	@Override
-	protected StepExecutionProgressInfoResource instantiateResource(StepExecutionProgressInfo entity) {
-		return new StepExecutionProgressInfoResource(entity.getStepExecution(), entity.getStepExecutionHistory(),
-				entity.getEstimatedPercentComplete(), entity.isFinished(), entity.getDuration(), entity.getTimeZone());
-	}
+    @Override
+    protected StepExecutionProgressInfoResource instantiateModel(StepExecutionProgressInfo entity) {
+        return new StepExecutionProgressInfoResource(entity.getStepExecution(), entity.getStepExecutionHistory(),
+                entity.getEstimatedPercentComplete(), entity.isFinished(), entity.getDuration(), entity.getTimeZone());
+    }
 }

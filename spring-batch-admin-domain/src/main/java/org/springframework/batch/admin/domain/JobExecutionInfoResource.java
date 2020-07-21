@@ -24,19 +24,18 @@ import java.util.TimeZone;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents job execution info resource.
@@ -47,212 +46,210 @@ import org.springframework.hateoas.ResourceSupport;
  * @since 2.0
  */
 @XmlRootElement
-public class JobExecutionInfoResource extends ResourceSupport {
+public class JobExecutionInfoResource extends RepresentationModel<JobExecutionInfoResource> {
 
-	private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
+    private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
 
-	private Long executionId;
+    private Long executionId;
 
-	private int stepExecutionCount;
+    private int stepExecutionCount;
 
-	private Long jobId;
+    private Long jobId;
 
-	private Integer version;
+    private Integer version;
 
-	@JsonProperty("name")
-	private String jobName;
+    @JsonProperty("name")
+    private String jobName;
 
-	private String startTime = "";
+    private String startTime = "";
 
-	private String endTime = "";
+    private String endTime = "";
 
-	private String createDate = "";
+    private String createDate = "";
 
-	private String lastUpdated = "";
+    private String lastUpdated = "";
 
-	private JobParameters jobParameters;
+    private JobParameters jobParameters;
 
-	private boolean restartable = false;
+    private boolean restartable = false;
 
-	private boolean abandonable = false;
+    private boolean abandonable = false;
 
-	private boolean stoppable = false;
+    private boolean stoppable = false;
 
-	private final TimeZone timeZone;
+    private final TimeZone timeZone;
 
-	private BatchStatus status;
+    private BatchStatus status;
 
-	private ExitStatus exitStatus;
+    private ExitStatus exitStatus;
 
-	private String jobConfigurationName;
+    private String jobConfigurationName;
 
-	private List<Throwable> failureExceptions;
+    private List<Throwable> failureExceptions;
 
-	private Map<String, Object> executionContext;
+    private Map<String, Object> executionContext;
 
-	private Collection<StepExecutionInfoResource> stepExecutions;
+    private Collection<StepExecutionInfoResource> stepExecutions;
 
-	public JobExecutionInfoResource() {
-		this.timeZone = TimeZone.getTimeZone("UTC");
-	}
+    public JobExecutionInfoResource() {
+        this.timeZone = TimeZone.getTimeZone("UTC");
+    }
 
-	public JobExecutionInfoResource(JobExecution jobExecution, TimeZone timeZone) {
+    public JobExecutionInfoResource(JobExecution jobExecution, TimeZone timeZone) {
 
-		if(timeZone != null) {
-			this.timeZone = timeZone;
-		}
-		else {
-			this.timeZone = TimeZone.getTimeZone("UTC");
-		}
+        if (timeZone != null) {
+            this.timeZone = timeZone;
+        } else {
+            this.timeZone = TimeZone.getTimeZone("UTC");
+        }
 
-		this.executionId = jobExecution.getId();
-		this.jobId = jobExecution.getJobId();
-		this.stepExecutionCount = jobExecution.getStepExecutions().size();
-		this.jobParameters = jobExecution.getJobParameters();
-		this.status = jobExecution.getStatus();
-		this.exitStatus = jobExecution.getExitStatus();
-		this.jobConfigurationName = jobExecution.getJobConfigurationName();
-		this.failureExceptions = jobExecution.getFailureExceptions();
-		Map<String, Object> executionContextEntires =
-				new HashMap<String, Object>(jobExecution.getExecutionContext().size());
+        this.executionId = jobExecution.getId();
+        this.jobId = jobExecution.getJobId();
+        this.stepExecutionCount = jobExecution.getStepExecutions().size();
+        this.jobParameters = jobExecution.getJobParameters();
+        this.status = jobExecution.getStatus();
+        this.exitStatus = jobExecution.getExitStatus();
+        this.jobConfigurationName = jobExecution.getJobConfigurationName();
+        this.failureExceptions = jobExecution.getFailureExceptions();
+        Map<String, Object> executionContextEntires = new HashMap<String, Object>(
+                jobExecution.getExecutionContext().size());
 
-		for (Map.Entry<String, Object> stringObjectEntry : jobExecution.getExecutionContext().entrySet()) {
-			executionContextEntires.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
-		}
+        for (Map.Entry<String, Object> stringObjectEntry : jobExecution.getExecutionContext().entrySet()) {
+            executionContextEntires.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
+        }
 
-		this.executionContext = executionContextEntires;
+        this.executionContext = executionContextEntires;
 
-		this.version = jobExecution.getVersion();
+        this.version = jobExecution.getVersion();
 
-		JobInstance jobInstance = jobExecution.getJobInstance();
-		if (jobInstance != null) {
-			this.jobName = jobInstance.getJobName();
-			BatchStatus status = jobExecution.getStatus();
-			this.restartable = status.isGreaterThan(BatchStatus.STOPPING) && status.isLessThan(BatchStatus.ABANDONED);
-			this.abandonable = status.isGreaterThan(BatchStatus.STARTED) && status != BatchStatus.ABANDONED;
-			this.stoppable = status.isLessThan(BatchStatus.STOPPING) && status != BatchStatus.COMPLETED;
-		}
-		else {
-			this.jobName = "?";
-		}
+        JobInstance jobInstance = jobExecution.getJobInstance();
+        if (jobInstance != null) {
+            this.jobName = jobInstance.getJobName();
+            BatchStatus status = jobExecution.getStatus();
+            this.restartable = status.isGreaterThan(BatchStatus.STOPPING) && status.isLessThan(BatchStatus.ABANDONED);
+            this.abandonable = status.isGreaterThan(BatchStatus.STARTED) && status != BatchStatus.ABANDONED;
+            this.stoppable = status.isLessThan(BatchStatus.STOPPING) && status != BatchStatus.COMPLETED;
+        } else {
+            this.jobName = "?";
+        }
 
-		this.dateFormat = this.dateFormat.withZone(DateTimeZone.forTimeZone(timeZone));
+        this.dateFormat = this.dateFormat.withZone(DateTimeZone.forTimeZone(timeZone));
 
-		this.createDate = dateFormat.print(jobExecution.getCreateTime().getTime());
-		this.lastUpdated = dateFormat.print(jobExecution.getLastUpdated().getTime());
+        this.createDate = dateFormat.print(jobExecution.getCreateTime().getTime());
+        this.lastUpdated = dateFormat.print(jobExecution.getLastUpdated().getTime());
 
-		if (jobExecution.getStartTime() != null) {
-			this.startTime = dateFormat.print(jobExecution.getStartTime().getTime());
+        if (jobExecution.getStartTime() != null) {
+            this.startTime = dateFormat.print(jobExecution.getStartTime().getTime());
 
-			if(!jobExecution.isRunning()) {
-				this.endTime = dateFormat.print(jobExecution.getEndTime().getTime());
-			}
-			else {
-				this.endTime = "N/A";
-			}
-		}
-	}
+            if (!jobExecution.isRunning()) {
+                this.endTime = dateFormat.print(jobExecution.getEndTime().getTime());
+            } else {
+                this.endTime = "N/A";
+            }
+        }
+    }
 
-	public void setStepExecutions(Collection<StepExecutionInfoResource> stepExecutions) {
-		this.stepExecutions = stepExecutions;
-	}
+    public void setStepExecutions(Collection<StepExecutionInfoResource> stepExecutions) {
+        this.stepExecutions = stepExecutions;
+    }
 
-	public TimeZone getTimeZone() {
-		return timeZone;
-	}
+    public TimeZone getTimeZone() {
+        return timeZone;
+    }
 
-	@JsonProperty
-	public String getName() {
-		return (jobName.endsWith(".job") ? jobName.substring(0, jobName.lastIndexOf(".job")) : jobName);
-	}
+    @JsonProperty
+    public String getName() {
+        return (jobName.endsWith(".job") ? jobName.substring(0, jobName.lastIndexOf(".job")) : jobName);
+    }
 
-	public Long getExecutionId() {
-		return executionId;
-	}
+    public Long getExecutionId() {
+        return executionId;
+    }
 
-	public int getStepExecutionCount() {
-		return stepExecutionCount;
-	}
+    public int getStepExecutionCount() {
+        return stepExecutionCount;
+    }
 
-	public Long getJobId() {
-		return jobId;
-	}
+    public Long getJobId() {
+        return jobId;
+    }
 
-	public String getStartTime() {
-		return startTime;
-	}
+    public String getStartTime() {
+        return startTime;
+    }
 
-	public boolean isRestartable() {
-		return restartable;
-	}
+    public boolean isRestartable() {
+        return restartable;
+    }
 
-	public boolean isAbandonable() {
-		return abandonable;
-	}
+    public boolean isAbandonable() {
+        return abandonable;
+    }
 
-	public boolean isStoppable() {
-		return stoppable;
-	}
+    public boolean isStoppable() {
+        return stoppable;
+    }
 
-	public JobParameters getJobParameters() {
-		return jobParameters;
-	}
+    public JobParameters getJobParameters() {
+        return jobParameters;
+    }
 
-	public Map<String, Object> getExecutionContext() {
-		return executionContext;
-	}
+    public Map<String, Object> getExecutionContext() {
+        return executionContext;
+    }
 
-	public List<Throwable> getFailureExceptions() {
-		return failureExceptions;
-	}
+    public List<Throwable> getFailureExceptions() {
+        return failureExceptions;
+    }
 
-	public String getJobConfigurationName() {
-		return jobConfigurationName;
-	}
+    public String getJobConfigurationName() {
+        return jobConfigurationName;
+    }
 
-	public ExitStatus getExitStatus() {
-		return exitStatus;
-	}
+    public ExitStatus getExitStatus() {
+        return exitStatus;
+    }
 
-	public BatchStatus getStatus() {
-		return status;
-	}
+    public BatchStatus getStatus() {
+        return status;
+    }
 
-	public String getLastUpdated() {
-		return lastUpdated;
-	}
+    public String getLastUpdated() {
+        return lastUpdated;
+    }
 
-	public String getCreateDate() {
-		return createDate;
-	}
+    public String getCreateDate() {
+        return createDate;
+    }
 
-	public Collection<StepExecutionInfoResource> getStepExecutions() {
-		return stepExecutions;
-	}
+    public Collection<StepExecutionInfoResource> getStepExecutions() {
+        return stepExecutions;
+    }
 
-	public Integer getVersion() {
-		return version;
-	}
+    public Integer getVersion() {
+        return version;
+    }
 
-	public String getEndTime() {
-		return endTime;
-	}
+    public String getEndTime() {
+        return endTime;
+    }
 
-	/**
-	 * Set restartable flag explicitly based on the job executions status of the same job instance.
-	 *
-	 * @param restartable flag to identify if the job execution can be restarted
-	 */
-	public void setRestartable(boolean restartable) {
-		this.restartable = restartable;
-	}
+    /**
+     * Set restartable flag explicitly based on the job executions status of the
+     * same job instance.
+     *
+     * @param restartable flag to identify if the job execution can be restarted
+     */
+    public void setRestartable(boolean restartable) {
+        this.restartable = restartable;
+    }
 
-	/**
-	 * Dedicated subclass to workaround type erasure.
-	 *
-	 * @author Gunnar Hillert
-	 */
-	public static class Page extends PagedResources<JobExecutionInfoResource> {
+    /**
+     * Dedicated subclass to workaround type erasure.
+     *
+     * @author Gunnar Hillert
+     */
+    public static class Page extends PagedModel<JobExecutionInfoResource> {
 
-	}
+    }
 }

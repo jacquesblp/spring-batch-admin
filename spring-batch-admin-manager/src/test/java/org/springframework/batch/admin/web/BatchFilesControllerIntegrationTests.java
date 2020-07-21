@@ -88,13 +88,13 @@ public class BatchFilesControllerIntegrationTests extends AbstractControllerInte
         mockMvc.perform(
                 get("/batch/files").param("page", "0").param("size", "10").accept(MediaType.APPLICATION_JSON))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(jsonPath("$.pagedResources.content.[*].timestamp",
+                .andExpect(jsonPath("$.pagedModel.content.[*].timestamp",
                         contains("sometimestamp", "anothertimestamp", "lasttimestamp")))
-                .andExpect(jsonPath("$.pagedResources.content.[*].path",
+                .andExpect(jsonPath("$.pagedModel.content.[*].path",
                         contains("foo.txt", "bar/foo.txt", "bar/baz.txt")))
-                .andExpect(jsonPath("$.pagedResources.content.[*].shortPath",
+                .andExpect(jsonPath("$.pagedModel.content.[*].shortPath",
                         contains("foo.txt", "bar/foo.txt", "bar/baz.txt")))
-                .andExpect(jsonPath("$.pagedResources.content.[*].local", contains(true, false, true)));
+                .andExpect(jsonPath("$.pagedModel.content.[*].local", contains(true, false, true)));
     }
 
     @Test

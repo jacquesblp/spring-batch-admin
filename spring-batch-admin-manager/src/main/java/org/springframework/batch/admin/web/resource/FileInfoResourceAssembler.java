@@ -19,27 +19,28 @@ package org.springframework.batch.admin.web.resource;
 import org.springframework.batch.admin.domain.FileInfoResource;
 import org.springframework.batch.admin.service.FileInfo;
 import org.springframework.batch.admin.web.BatchFileController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
  * Knows how to build a REST resource out of our domain model {@link FileInfo}.
  *
  * @author Michael Minella
  */
-public class FileInfoResourceAssembler extends ResourceAssemblerSupport<FileInfo, FileInfoResource> {
+public class FileInfoResourceAssembler extends RepresentationModelAssemblerSupport<FileInfo, FileInfoResource> {
 
-	public FileInfoResourceAssembler() {
-		super(BatchFileController.class, FileInfoResource.class);
-	}
+    public FileInfoResourceAssembler() {
+        super(BatchFileController.class, FileInfoResource.class);
+    }
 
-	@Override
-	public FileInfoResource toResource(FileInfo entity) {
-		return createResourceWithId(entity.getPath(), entity);
-	}
+    @Override
+    protected FileInfoResource instantiateModel(FileInfo entity) {
+        return new FileInfoResource(entity.getTimestamp(), entity.getPath(), entity.shortPath().getPath(),
+                entity.isLocal(), entity.getDeleteCount());
+    }
 
-	@Override
-	protected FileInfoResource instantiateResource(FileInfo entity) {
-		return new FileInfoResource(entity.getTimestamp(), entity.getPath(), entity.shortPath().getPath(), entity.isLocal(), entity.getDeleteCount());
-	}
+    @Override
+    public FileInfoResource toModel(FileInfo entity) {
+        // TODO Auto-generated method stub
+        return createModelWithId(entity.getPath(), entity);
+    }
 }

@@ -31,8 +31,8 @@ import org.springframework.batch.core.launch.NoSuchJobInstanceException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,65 +52,65 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ExposesResourceFor(JobInstanceInfoResource.class)
 public class BatchJobInstancesController extends AbstractBatchJobsController {
 
-	/**
-	 * Return job instance info by the given instance id.
-	 * 
-	 * @param instanceId job instance id
-	 * @return job instance info
-	 */
-	@RequestMapping(value = "/{instanceId}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	public JobInstanceInfoResource getJobInstance(@PathVariable long instanceId) {
-		try {
-			JobInstance jobInstance = jobService.getJobInstance(instanceId);
-			String jobName = jobInstance.getJobName();
+    /**
+     * Return job instance info by the given instance id.
+     * 
+     * @param instanceId job instance id
+     * @return job instance info
+     */
+    @RequestMapping(value = "/{instanceId}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public JobInstanceInfoResource getJobInstance(@PathVariable long instanceId) {
+        try {
+            JobInstance jobInstance = jobService.getJobInstance(instanceId);
+            String jobName = jobInstance.getJobName();
 
-			try {
-				List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
-						jobInstance.getJobName(), jobInstance.getId());
-				List<JobExecutionInfo> jobExecutionInfos = new ArrayList<JobExecutionInfo>();
-				for (JobExecution jobExecution : jobExecutions) {
-					jobExecutionInfos.add(new JobExecutionInfo(jobExecution, timeZone));
-				}
+            try {
+                List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
+                        jobInstance.getJobName(), jobInstance.getId());
+                List<JobExecutionInfo> jobExecutionInfos = new ArrayList<JobExecutionInfo>();
+                for (JobExecution jobExecution : jobExecutions) {
+                    jobExecutionInfos.add(new JobExecutionInfo(jobExecution, timeZone));
+                }
 
-				return jobInstanceInfoResourceAssembler.toResource(new JobInstanceInfo(jobInstance, jobExecutions));
-			}
-			catch (NoSuchJobException e) {
-				throw new NoSuchBatchJobException(jobName);
-			}
-		}
-		catch (NoSuchJobInstanceException e) {
-			throw new NoSuchBatchJobInstanceException(instanceId);
-		}
-	}
+                return jobInstanceInfoResourceAssembler.toModel(new JobInstanceInfo(jobInstance, jobExecutions));
+            } catch (NoSuchJobException e) {
+                throw new NoSuchBatchJobException(jobName);
+            }
+        } catch (NoSuchJobInstanceException e) {
+            throw new NoSuchBatchJobInstanceException(instanceId);
+        }
+    }
 
-	/**
-	 * Return a paged collection of job instances for a given job.
-	 *
-	 * @param pageable page request
-	 * @param assembler used to construct resources
-	 * @param jobName name of the batch job
-	 * @return collection of JobInstances by job name
-	 */
-	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
-	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<JobInstanceInfoResource> instancesForJob(Pageable pageable, PagedResourcesAssembler<JobInstanceInfo> assembler, @RequestParam("jobname") String jobName) {
+    /**
+     * Return a paged collection of job instances for a given job.
+     *
+     * @param pageable  page request
+     * @param assembler used to construct resources
+     * @param jobName   name of the batch job
+     * @return collection of JobInstances by job name
+     */
+    @RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
+    @ResponseStatus(HttpStatus.OK)
+    public PagedModel<JobInstanceInfoResource> instancesForJob(Pageable pageable,
+            PagedResourcesAssembler<JobInstanceInfo> assembler, @RequestParam("jobname") String jobName) {
 
-		try {
-			List<JobInstanceInfo> result = new ArrayList<JobInstanceInfo>();
-			long total = jobService.countJobInstances(jobName);
+        try {
+            List<JobInstanceInfo> result = new ArrayList<JobInstanceInfo>();
+            long total = jobService.countJobInstances(jobName);
 
-			Collection<JobInstance> jobInstances = jobService.listJobInstances(jobName, pageable.getOffset(), pageable.getPageSize());
-			for (JobInstance jobInstance : jobInstances) {
-				List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
-						jobName, jobInstance.getId());
-				result.add(new JobInstanceInfo(jobInstance, jobExecutions));
-			}
+            Collection<JobInstance> jobInstances = jobService.listJobInstances(jobName, (int) pageable.getOffset(),
+                    pageable.getPageSize());
+            for (JobInstance jobInstance : jobInstances) {
+                List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
+                        jobName, jobInstance.getId());
+                result.add(new JobInstanceInfo(jobInstance, jobExecutions));
+            }
 
-			return assembler.toResource(new PageImpl<JobInstanceInfo>(result, pageable, total), jobInstanceInfoResourceAssembler);
-		}
-		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
-		}
-	}
+            return assembler.toModel(new PageImpl<JobInstanceInfo>(result, pageable, total),
+                    jobInstanceInfoResourceAssembler);
+        } catch (NoSuchJobException e) {
+            throw new NoSuchBatchJobException(jobName);
+        }
+    }
 }

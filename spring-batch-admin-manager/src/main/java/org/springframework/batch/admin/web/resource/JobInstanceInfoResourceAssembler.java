@@ -18,46 +18,48 @@ package org.springframework.batch.admin.web.resource;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.springframework.batch.admin.domain.JobExecutionInfo;
+import org.springframework.batch.admin.domain.JobExecutionInfoResource;
 import org.springframework.batch.admin.domain.JobInstanceInfoResource;
 import org.springframework.batch.admin.web.BatchJobInstancesController;
 import org.springframework.batch.admin.web.JobInstanceInfo;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
- * Resource assembler that builds the REST resource {@link JobInstanceInfoResource} out of domain model
+ * Resource assembler that builds the REST resource
+ * {@link JobInstanceInfoResource} out of domain model
  * {@link org.springframework.batch.admin.web.JobInstanceInfo}.
  * 
  * @author Ilayaperumal Gopinathan
  */
 public class JobInstanceInfoResourceAssembler extends
-		ResourceAssemblerSupport<JobInstanceInfo, JobInstanceInfoResource> {
+        RepresentationModelAssemblerSupport<JobInstanceInfo, JobInstanceInfoResource> {
 
-	JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
+    JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
 
-	public JobInstanceInfoResourceAssembler() {
-		super(BatchJobInstancesController.class, JobInstanceInfoResource.class);
-	}
+    public JobInstanceInfoResourceAssembler() {
+        super(BatchJobInstancesController.class, JobInstanceInfoResource.class);
+    }
 
-	@Override
-	public JobInstanceInfoResource toResource(JobInstanceInfo entity) {
-		return createResourceWithId(entity.getJobInstance().getId(), entity);
-	}
+    @Override
+    public JobInstanceInfoResource toModel(JobInstanceInfo entity) {
+        return createModelWithId(entity.getJobInstance().getId(), entity);
+    }
 
-	@Override
-	protected JobInstanceInfoResource instantiateResource(JobInstanceInfo entity) {
-		Collection<JobExecution> jobExecutions = entity.getJobExecutions();
-		Collection<JobExecutionInfo> infos = new ArrayList<JobExecutionInfo>(jobExecutions.size());
+    @Override
+    protected JobInstanceInfoResource instantiateModel(JobInstanceInfo entity) {
+        Collection<JobExecution> jobExecutions = entity.getJobExecutions();
+        List<JobExecutionInfoResource> infos = new ArrayList<JobExecutionInfoResource>(jobExecutions.size());
 
-		for (JobExecution jobExecution : jobExecutions) {
-			infos.add(new JobExecutionInfo(jobExecution, TimeZone.getTimeZone("UTC")));
-		}
+        for (JobExecution jobExecution : jobExecutions) {
+            infos.add(jobExecutionInfoResourceAssembler
+                    .toModel(new JobExecutionInfo(jobExecution, TimeZone.getTimeZone("UTC"))));
+        }
 
-		return new JobInstanceInfoResource(entity.getJobInstance(),
-				jobExecutionInfoResourceAssembler.toResources(infos));
-	}
+        return new JobInstanceInfoResource(entity.getJobInstance(), infos);
+    }
 }

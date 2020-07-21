@@ -19,28 +19,28 @@ package org.springframework.batch.admin.web.resource;
 import org.springframework.batch.admin.domain.JobInfo;
 import org.springframework.batch.admin.domain.JobInfoResource;
 import org.springframework.batch.admin.web.BatchJobsController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
- * Knows how to build a REST resource out of our domain model {@link org.springframework.batch.admin.domain.JobInfo}.
+ * Knows how to build a REST resource out of our domain model
+ * {@link org.springframework.batch.admin.domain.JobInfo}.
  *
  * @author Ilayaperumal Gopinathan
  */
-public class JobInfoResourceAssembler extends ResourceAssemblerSupport<JobInfo, JobInfoResource> {
+public class JobInfoResourceAssembler extends RepresentationModelAssemblerSupport<JobInfo, JobInfoResource> {
 
-	public JobInfoResourceAssembler() {
-		super(BatchJobsController.class, JobInfoResource.class);
-	}
+    public JobInfoResourceAssembler() {
+        super(BatchJobsController.class, JobInfoResource.class);
+    }
 
-	@Override
-	public JobInfoResource toResource(JobInfo entity) {
-		return createResourceWithId(entity.getName(), entity);
-	}
+    @Override
+    public JobInfoResource toModel(JobInfo entity) {
+        return createModelWithId(entity.getName(), entity);
+    }
 
-	@Override
-	protected JobInfoResource instantiateResource(JobInfo entity) {
-		return new JobInfoResource(entity.getName(), entity.getExecutionCount(), entity.getJobInstanceId(),
-				entity.isLaunchable(), entity.isIncrementable());
-	}
+    @Override
+    protected JobInfoResource instantiateModel(JobInfo entity) {
+        return new JobInfoResource(entity.getName(), entity.getExecutionCount(), entity.getJobInstanceId(),
+                entity.isLaunchable(), entity.isIncrementable());
+    }
 }

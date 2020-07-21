@@ -39,9 +39,9 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.PagedResources.PageMetadata;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.PagedModel.PageMetadata;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,264 +63,282 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ExposesResourceFor(JobExecutionInfoResource.class)
 public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
-	@Autowired
-	private ListableJobLocator jobLocator;
+    @Autowired
+    private ListableJobLocator jobLocator;
 
-	/**
-	 * List all job executions in a given range. If no pagination is provided,
-	 * the default {@code PageRequest(0, 20)} is passed in. See {@link org.springframework.data.web.PageableHandlerMethodArgumentResolver}
-	 * for details.
-	 *
-	 * @param pageable If not provided will default to page 0 and a page size of 20
-	 * @return Collection of JobExecutionInfoResource
-	 */
-	@RequestMapping(value = { "" }, method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<JobExecutionInfoResource> list(Pageable pageable) throws NoSuchJobException {
+    /**
+     * List all job executions in a given range. If no pagination is provided, the
+     * default {@code PageRequest(0, 20)} is passed in. See
+     * {@link org.springframework.data.web.PageableHandlerMethodArgumentResolver}
+     * for details.
+     *
+     * @param pageable If not provided will default to page 0 and a page size of 20
+     * @return Collection of JobExecutionInfoResource
+     */
+    @RequestMapping(value = { "" }, method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public PagedModel<JobExecutionInfoResource> list(Pageable pageable) throws NoSuchJobException {
 
-		Collection<JobExecutionInfoResource> resources = new ArrayList<JobExecutionInfoResource>();
+        Collection<JobExecutionInfoResource> resources = new ArrayList<JobExecutionInfoResource>();
 
-		for (JobExecution jobExecution : jobService.listJobExecutions(pageable.getOffset(), pageable.getPageSize())) {
-			Job job = jobLocator.getJob(jobExecution.getJobInstance().getJobName());
+        for (JobExecution jobExecution : jobService.listJobExecutions((int) pageable.getOffset(),
+                pageable.getPageSize())) {
+            Job job = jobLocator.getJob(jobExecution.getJobInstance().getJobName());
 
-			final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
-					job.isRestartable());
-			resources.add(jobExecutionInfoResource);
-		}
+            final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
+                    job.isRestartable());
+            resources.add(jobExecutionInfoResource);
+        }
 
-		return new PagedResources<JobExecutionInfoResource>(resources,
-				new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
-						jobService.countJobExecutions()));
-	}
+        return new PagedModel<JobExecutionInfoResource>(resources,
+                new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
+                        jobService.countJobExecutions()));
+    }
 
-	/**
-	 * Return a paged collection of job executions for a given job.
-	 *
-	 * @param jobName name of the job
-	 * @param pageable If not provided will default to page 0 and a page size of 20
-	 * @return Collection of JobExecutionInfo
-	 */
-	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
-	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<JobExecutionInfoResource> executionsForJob(@RequestParam("jobname") String jobName,
-			Pageable pageable) {
+    /**
+     * Return a paged collection of job executions for a given job.
+     *
+     * @param jobName  name of the job
+     * @param pageable If not provided will default to page 0 and a page size of 20
+     * @return Collection of JobExecutionInfo
+     */
+    @RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
+    @ResponseStatus(HttpStatus.OK)
+    public PagedModel<JobExecutionInfoResource> executionsForJob(@RequestParam("jobname") String jobName,
+            Pageable pageable) {
 
-		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
-		try {
-			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(jobName, pageable.getOffset(), pageable.getPageSize())) {
-				result.add(jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone)));
-			}
+        Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
+        try {
+            for (JobExecution jobExecution : jobService.listJobExecutionsForJob(jobName, (int) pageable.getOffset(),
+                    pageable.getPageSize())) {
+                result.add(jobExecutionInfoResourceAssembler.toModel(new JobExecutionInfo(jobExecution, timeZone)));
+            }
 
-			return new PagedResources<JobExecutionInfoResource>(result,
-					new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
-							jobService.countJobExecutionsForJob(jobName)));
-		}
-		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
-		}
-	}
+            return new PagedModel<JobExecutionInfoResource>(result,
+                    new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
+                            jobService.countJobExecutionsForJob(jobName)));
+        } catch (NoSuchJobException e) {
+            throw new NoSuchBatchJobException(jobName);
+        }
+    }
 
-	/**
-	 * Return a paged collection of job executions for a given job instance.
-	 *
-	 * @param jobName name of the job
-	 * @return Collection of JobExecutionInfo
-	 */
-	@RequestMapping(value = "", method = RequestMethod.GET, params = {"jobinstanceid", "jobname"})
-	@ResponseStatus(HttpStatus.OK)
-	public Collection<JobExecutionInfoResource> executionsForJobInstance(@RequestParam("jobinstanceid") long jobInstanceId,
-			@RequestParam("jobname") String jobName) {
+    /**
+     * Return a paged collection of job executions for a given job instance.
+     *
+     * @param jobName name of the job
+     * @return Collection of JobExecutionInfo
+     */
+    @RequestMapping(value = "", method = RequestMethod.GET, params = { "jobinstanceid", "jobname" })
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<JobExecutionInfoResource> executionsForJobInstance(
+            @RequestParam("jobinstanceid") long jobInstanceId,
+            @RequestParam("jobname") String jobName) {
 
-		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
-		try {
-			for (JobExecution jobExecution : jobService.getJobExecutionsForJobInstance(jobName, jobInstanceId)) {
-				result.add(jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone)));
-			}
+        Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
+        try {
+            for (JobExecution jobExecution : jobService.getJobExecutionsForJobInstance(jobName, jobInstanceId)) {
+                result.add(jobExecutionInfoResourceAssembler.toModel(new JobExecutionInfo(jobExecution, timeZone)));
+            }
 
-			return result;
-		}
-		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
-		}
-	}
+            return result;
+        } catch (NoSuchJobException e) {
+            throw new NoSuchBatchJobException(jobName);
+        }
+    }
 
-	/**
-	 * Send the request to launch Job. Job has to be deployed first.
-	 *
-	 * @param name the name of the job
-	 * @param jobParameters the job parameters in comma delimited form
-	 */
-	@RequestMapping(value = "", method = RequestMethod.POST, params = "jobname")
-	@ResponseStatus(HttpStatus.CREATED)
-	public void launchJob(@RequestParam("jobname") String name, @RequestParam(value = "jobParameters", required = false) String jobParameters) throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, NoSuchJobException {
-		JobParameters params = new JobParameters();
-		if(jobParameters != null) {
-			JobParametersExtractor extractor = new JobParametersExtractor();
-			params = extractor.fromString(jobParameters);
-		}
+    /**
+     * Send the request to launch Job. Job has to be deployed first.
+     *
+     * @param name          the name of the job
+     * @param jobParameters the job parameters in comma delimited form
+     */
+    @RequestMapping(value = "", method = RequestMethod.POST, params = "jobname")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void launchJob(@RequestParam("jobname") String name,
+            @RequestParam(value = "jobParameters", required = false) String jobParameters)
+            throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException,
+            JobInstanceAlreadyCompleteException, NoSuchJobException {
+        JobParameters params = new JobParameters();
+        if (jobParameters != null) {
+            JobParametersExtractor extractor = new JobParametersExtractor();
+            params = extractor.fromString(jobParameters);
+        }
 
-		jobService.launch(name, params);
-	}
+        jobService.launch(name, params);
+    }
 
-	/**
-	 * Check if the {@link org.springframework.batch.core.JobInstance} corresponds to the given {@link org.springframework.batch.core.JobExecution}
-	 * has any of the JobExecutions in {@link org.springframework.batch.core.BatchStatus#COMPLETED} status
-	 * @param jobExecution the jobExecution to check for
-	 * @return boolean flag to set if this job execution can be restarted
-	 */
-	private boolean isJobExecutionRestartable(JobExecution jobExecution) {
-		JobInstance jobInstance = jobExecution.getJobInstance();
-		BatchStatus status = jobExecution.getStatus();
-		try {
-			List<JobExecution> jobExecutionsForJobInstance = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
-					jobInstance.getJobName(), jobInstance.getId());
-			for (JobExecution jobExecutionForJobInstance : jobExecutionsForJobInstance) {
-				if (jobExecutionForJobInstance.getStatus() == BatchStatus.COMPLETED) {
-					return false;
-				}
-			}
-		}
-		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobInstance.getJobName());
-		}
-		return status.isGreaterThan(BatchStatus.STOPPING) && status.isLessThan(BatchStatus.ABANDONED);
-	}
+    /**
+     * Check if the {@link org.springframework.batch.core.JobInstance} corresponds
+     * to the given {@link org.springframework.batch.core.JobExecution} has any of
+     * the JobExecutions in
+     * {@link org.springframework.batch.core.BatchStatus#COMPLETED} status
+     * 
+     * @param jobExecution the jobExecution to check for
+     * @return boolean flag to set if this job execution can be restarted
+     */
+    private boolean isJobExecutionRestartable(JobExecution jobExecution) {
+        JobInstance jobInstance = jobExecution.getJobInstance();
+        BatchStatus status = jobExecution.getStatus();
+        try {
+            List<JobExecution> jobExecutionsForJobInstance = (List<JobExecution>) jobService
+                    .getJobExecutionsForJobInstance(
+                            jobInstance.getJobName(), jobInstance.getId());
+            for (JobExecution jobExecutionForJobInstance : jobExecutionsForJobInstance) {
+                if (jobExecutionForJobInstance.getStatus() == BatchStatus.COMPLETED) {
+                    return false;
+                }
+            }
+        } catch (NoSuchJobException e) {
+            throw new NoSuchBatchJobException(jobInstance.getJobName());
+        }
+        return status.isGreaterThan(BatchStatus.STOPPING) && status.isLessThan(BatchStatus.ABANDONED);
+    }
 
-	/**
-	 * @param executionId Id of the {@link org.springframework.batch.core.JobExecution}
-	 * @return JobExecutionInfo for the given job name
-	 * @throws org.springframework.batch.core.launch.NoSuchJobExecutionException Thrown if the {@link org.springframework.batch.core.JobExecution} does not exist
-	 */
-	@RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable long executionId) throws NoSuchJobExecutionException {
+    /**
+     * @param executionId Id of the
+     *                    {@link org.springframework.batch.core.JobExecution}
+     * @return JobExecutionInfo for the given job name
+     * @throws org.springframework.batch.core.launch.NoSuchJobExecutionException Thrown
+     *                                                                           if
+     *                                                                           the
+     *                                                                           {@link org.springframework.batch.core.JobExecution}
+     *                                                                           does
+     *                                                                           not
+     *                                                                           exist
+     */
+    @RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public JobExecutionInfoResource getJobExecutionInfo(@PathVariable long executionId)
+            throws NoSuchJobExecutionException {
 
-		final JobExecution jobExecution;
+        final JobExecution jobExecution;
 
-		try {
-			jobExecution = jobService.getJobExecution(executionId);
-		}
-		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
-			throw new NoSuchJobExecutionException(String.format("Could not find jobExecution with id %s", String.valueOf(executionId)));
-		}
+        try {
+            jobExecution = jobService.getJobExecution(executionId);
+        } catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+            throw new NoSuchJobExecutionException(
+                    String.format("Could not find jobExecution with id %s", String.valueOf(executionId)));
+        }
 
-		final Job job;
-		String jobName = jobExecution.getJobInstance().getJobName();
+        final Job job;
+        String jobName = jobExecution.getJobInstance().getJobName();
 
-		try {
-			job = jobLocator.getJob(jobName);
-		}
-		catch (NoSuchJobException e1) {
-			throw new NoSuchBatchJobException("The job '" + jobName + "' does not exist.");
-		}
+        try {
+            job = jobLocator.getJob(jobName);
+        } catch (NoSuchJobException e1) {
+            throw new NoSuchBatchJobException("The job '" + jobName + "' does not exist.");
+        }
 
-		return getJobExecutionInfoResource(jobExecution, job.isRestartable());
-	}
+        return getJobExecutionInfoResource(jobExecution, job.isRestartable());
+    }
 
-	private JobExecutionInfoResource getJobExecutionInfoResource(JobExecution jobExecution,
-			boolean restartable) {
+    private JobExecutionInfoResource getJobExecutionInfoResource(JobExecution jobExecution,
+            boolean restartable) {
 
-		final JobExecutionInfoResource jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(
-				jobExecution,
-				timeZone));
-		if (restartable) {
-			// Set restartable flag for the JobExecutionResource based on the actual JobInstance
-			// If any one of the jobExecutions for the jobInstance is complete, set the restartable flag for
-			// all the jobExecutions to false.
-			if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
-				jobExecutionInfoResource.setRestartable(isJobExecutionRestartable(jobExecution));
-			}
-		}
-		else {
-			// Set false for this job execution irrespective its status.
-			jobExecutionInfoResource.setRestartable(false);
-		}
+        final JobExecutionInfoResource jobExecutionInfoResource = jobExecutionInfoResourceAssembler
+                .toModel(new JobExecutionInfo(
+                        jobExecution,
+                        timeZone));
+        if (restartable) {
+            // Set restartable flag for the JobExecutionResource based on the actual
+            // JobInstance
+            // If any one of the jobExecutions for the jobInstance is complete, set the
+            // restartable flag for
+            // all the jobExecutions to false.
+            if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+                jobExecutionInfoResource.setRestartable(isJobExecutionRestartable(jobExecution));
+            }
+        } else {
+            // Set false for this job execution irrespective its status.
+            jobExecutionInfoResource.setRestartable(false);
+        }
 
-		return jobExecutionInfoResource;
-	}
+        return jobExecutionInfoResource;
+    }
 
-	/**
-	 * Stop Job Execution by the given executionId.
-	 *
-	 * @param jobExecutionId the executionId of the job execution to stop
-	 */
-	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "stop=true")
-	@ResponseStatus(HttpStatus.OK)
-	public void stopJobExecution(@PathVariable("executionId") long jobExecutionId) throws JobExecutionNotRunningException, NoSuchJobExecutionException {
-		try {
-			jobService.stop(jobExecutionId);
-		}
-		catch (org.springframework.batch.core.launch.JobExecutionNotRunningException e) {
-			throw new JobExecutionNotRunningException(String.format("Job execution with executionId %s is not running.", String.valueOf(jobExecutionId)));
-		}
-		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
-			throw new NoSuchJobExecutionException(String.format("Could not find jobExecution with id %s", String.valueOf(jobExecutionId)));
-		}
-	}
+    /**
+     * Stop Job Execution by the given executionId.
+     *
+     * @param jobExecutionId the executionId of the job execution to stop
+     */
+    @RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "stop=true")
+    @ResponseStatus(HttpStatus.OK)
+    public void stopJobExecution(@PathVariable("executionId") long jobExecutionId)
+            throws JobExecutionNotRunningException, NoSuchJobExecutionException {
+        try {
+            jobService.stop(jobExecutionId);
+        } catch (org.springframework.batch.core.launch.JobExecutionNotRunningException e) {
+            throw new JobExecutionNotRunningException(
+                    String.format("Job execution with executionId %s is not running.", String.valueOf(jobExecutionId)));
+        } catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+            throw new NoSuchJobExecutionException(
+                    String.format("Could not find jobExecution with id %s", String.valueOf(jobExecutionId)));
+        }
+    }
 
-	/**
-	 * Restart the Job Execution with the given executionId.
-	 *
-	 * @param jobExecutionId the executionId of the job execution to restart
-	 */
-	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "restart=true")
-	@ResponseStatus(HttpStatus.OK)
-	public void restartJobExecution(@PathVariable("executionId") long jobExecutionId) throws NoSuchJobExecutionException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobInstanceAlreadyCompleteException, JobRestartException, NoSuchJobException {
+    /**
+     * Restart the Job Execution with the given executionId.
+     *
+     * @param jobExecutionId the executionId of the job execution to restart
+     */
+    @RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "restart=true")
+    @ResponseStatus(HttpStatus.OK)
+    public void restartJobExecution(@PathVariable("executionId") long jobExecutionId)
+            throws NoSuchJobExecutionException, JobExecutionAlreadyRunningException, JobParametersInvalidException,
+            JobInstanceAlreadyCompleteException, JobRestartException, NoSuchJobException {
 
-		final JobExecution jobExecution;
-		try {
-			jobExecution = jobService.getJobExecution(jobExecutionId);
-		}
-		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
-			throw new NoSuchJobExecutionException(String.format("Could not find jobExecution with id %s", String.valueOf(jobExecutionId)));
-		}
+        final JobExecution jobExecution;
+        try {
+            jobExecution = jobService.getJobExecution(jobExecutionId);
+        } catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+            throw new NoSuchJobExecutionException(
+                    String.format("Could not find jobExecution with id %s", String.valueOf(jobExecutionId)));
+        }
 
-		if (jobExecution.isRunning()) {
-			throw new JobExecutionAlreadyRunningException(
-					"Job Execution for this job is already running: " + jobExecution.getJobInstance());
-		}
+        if (jobExecution.isRunning()) {
+            throw new JobExecutionAlreadyRunningException(
+                    "Job Execution for this job is already running: " + jobExecution.getJobInstance());
+        }
 
-		final JobInstance lastInstance = jobExecution.getJobInstance();
-		final JobParameters jobParameters = jobExecution.getJobParameters();
+        final JobInstance lastInstance = jobExecution.getJobInstance();
+        final JobParameters jobParameters = jobExecution.getJobParameters();
 
-		final Job job;
-		try {
-			job = jobLocator.getJob(lastInstance.getJobName());
-		}
-		catch (NoSuchJobException e1) {
-			throw new NoSuchBatchJobException("The job '" + lastInstance.getJobName()
-					+ "' does not exist.");
-		}
-		try {
-			job.getJobParametersValidator().validate(jobParameters);
-		}
-		catch (JobParametersInvalidException e) {
-			throw new JobParametersInvalidException(
-					"The Job Parameters for Job Execution " + jobExecution.getId()
-					+ " are invalid.");
-		}
+        final Job job;
+        try {
+            job = jobLocator.getJob(lastInstance.getJobName());
+        } catch (NoSuchJobException e1) {
+            throw new NoSuchBatchJobException("The job '" + lastInstance.getJobName()
+                    + "' does not exist.");
+        }
+        try {
+            job.getJobParametersValidator().validate(jobParameters);
+        } catch (JobParametersInvalidException e) {
+            throw new JobParametersInvalidException(
+                    "The Job Parameters for Job Execution " + jobExecution.getId()
+                            + " are invalid.");
+        }
 
-		final BatchStatus status = jobExecution.getStatus();
+        final BatchStatus status = jobExecution.getStatus();
 
-		if (status == BatchStatus.COMPLETED || status == BatchStatus.ABANDONED) {
-			throw new JobInstanceAlreadyCompleteException(
-					"Job Execution " + jobExecution.getId() + " is already complete.");
-		}
+        if (status == BatchStatus.COMPLETED || status == BatchStatus.ABANDONED) {
+            throw new JobInstanceAlreadyCompleteException(
+                    "Job Execution " + jobExecution.getId() + " is already complete.");
+        }
 
-		if (!job.isRestartable()) {
-			throw new JobRestartException(
-					"The job '" + lastInstance.getJobName() + "' is not restartable.");
-		}
+        if (!job.isRestartable()) {
+            throw new JobRestartException(
+                    "The job '" + lastInstance.getJobName() + "' is not restartable.");
+        }
 
-		jobService.launch(lastInstance.getJobName(), jobParameters);
-	}
+        jobService.launch(lastInstance.getJobName(), jobParameters);
+    }
 
-	/**
-	 * Stop all job executions.
-	 */
-	@RequestMapping(value = { "" }, method = RequestMethod.PUT, params = "stop=true")
-	@ResponseStatus(HttpStatus.OK)
-	public void stopAll() {
-		jobService.stopAll();
-	}
+    /**
+     * Stop all job executions.
+     */
+    @RequestMapping(value = { "" }, method = RequestMethod.PUT, params = "stop=true")
+    @ResponseStatus(HttpStatus.OK)
+    public void stopAll() {
+        jobService.stopAll();
+    }
 }

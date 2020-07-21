@@ -21,41 +21,40 @@ import org.springframework.batch.admin.domain.DetailedJobInfoResource;
 import org.springframework.batch.admin.domain.JobExecutionInfo;
 import org.springframework.batch.admin.domain.JobExecutionInfoResource;
 import org.springframework.batch.admin.web.BatchJobsController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
- * Knows how to build a REST resource out of our domain model {@link org.springframework.batch.admin.domain.DetailedJobInfo}.
+ * Knows how to build a REST resource out of our domain model
+ * {@link org.springframework.batch.admin.domain.DetailedJobInfo}.
  * 
  * @author Ilayaperumal Gopinathan
  */
 public class DetailedJobInfoResourceAssembler extends
-		ResourceAssemblerSupport<DetailedJobInfo, DetailedJobInfoResource> {
+        RepresentationModelAssemblerSupport<DetailedJobInfo, DetailedJobInfoResource> {
 
-	private JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
+    private JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
 
-	public DetailedJobInfoResourceAssembler() {
-		super(BatchJobsController.class, DetailedJobInfoResource.class);
-	}
+    public DetailedJobInfoResourceAssembler() {
+        super(BatchJobsController.class, DetailedJobInfoResource.class);
+    }
 
-	@Override
-	public DetailedJobInfoResource toResource(DetailedJobInfo entity) {
-		return createResourceWithId(entity.getName(), entity);
-	}
+    @Override
+    protected DetailedJobInfoResource instantiateModel(DetailedJobInfo entity) {
+        JobExecutionInfoResource jobExecutionInfoResource;
+        if (entity.getLastExecutionInfo() != null) {
+            JobExecutionInfo jobExecutionInfo = new JobExecutionInfo(
+                    entity.getLastExecutionInfo().getJobExecution(),
+                    entity.getLastExecutionInfo().getTimeZone());
+            jobExecutionInfoResource = jobExecutionInfoResourceAssembler.instantiateModel(jobExecutionInfo);
+        } else {
+            jobExecutionInfoResource = null;
+        }
+        return new DetailedJobInfoResource(entity.getName(), entity.getExecutionCount(),
+                entity.isLaunchable(), entity.isIncrementable(), jobExecutionInfoResource);
+    }
 
-	@Override
-	protected DetailedJobInfoResource instantiateResource(DetailedJobInfo entity) {
-		JobExecutionInfoResource jobExecutionInfoResource;
-		if (entity.getLastExecutionInfo() != null) {
-			JobExecutionInfo jobExecutionInfo = new JobExecutionInfo(
-					entity.getLastExecutionInfo().getJobExecution(),
-					entity.getLastExecutionInfo().getTimeZone());
-			jobExecutionInfoResource = jobExecutionInfoResourceAssembler.instantiateResource(jobExecutionInfo);
-		}
-		else {
-			jobExecutionInfoResource = null;
-		}
-		return new DetailedJobInfoResource(entity.getName(), entity.getExecutionCount(),
-				entity.isLaunchable(), entity.isIncrementable(), jobExecutionInfoResource);
-	}
+    @Override
+    public DetailedJobInfoResource toModel(DetailedJobInfo entity) {
+        return createModelWithId(entity.getName(), entity);
+    }
 }

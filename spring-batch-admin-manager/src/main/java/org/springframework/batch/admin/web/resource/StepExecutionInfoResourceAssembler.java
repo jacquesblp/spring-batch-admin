@@ -19,29 +19,29 @@ package org.springframework.batch.admin.web.resource;
 import org.springframework.batch.admin.domain.StepExecutionInfo;
 import org.springframework.batch.admin.domain.StepExecutionInfoResource;
 import org.springframework.batch.admin.web.BatchStepExecutionsController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
- * Knows how to build a REST resource out of our domain model {@link org.springframework.batch.admin.domain.StepExecutionInfo}.
+ * Knows how to build a REST resource out of our domain model
+ * {@link org.springframework.batch.admin.domain.StepExecutionInfo}.
  * 
  * @author Gunnar Hillert
  * @since 2.0
  */
 public class StepExecutionInfoResourceAssembler extends
-		ResourceAssemblerSupport<StepExecutionInfo, StepExecutionInfoResource> {
+        RepresentationModelAssemblerSupport<StepExecutionInfo, StepExecutionInfoResource> {
 
-	public StepExecutionInfoResourceAssembler() {
-		super(BatchStepExecutionsController.class, StepExecutionInfoResource.class);
-	}
+    public StepExecutionInfoResourceAssembler() {
+        super(BatchStepExecutionsController.class, StepExecutionInfoResource.class);
+    }
 
-	@Override
-	public StepExecutionInfoResource toResource(StepExecutionInfo entity) {
-		return createResourceWithId(entity.getId(), entity, entity.getJobExecutionId());
-	}
+    @Override
+    public StepExecutionInfoResource toModel(StepExecutionInfo entity) {
+        return createModelWithId(entity.getId(), entity, entity.getJobExecutionId());
+    }
 
-	@Override
-	protected StepExecutionInfoResource instantiateResource(StepExecutionInfo entity) {
-		return new StepExecutionInfoResource(entity.getStepExecution(), entity.getTimeZone());
-	}
+    @Override
+    protected StepExecutionInfoResource instantiateModel(StepExecutionInfo entity) {
+        return new StepExecutionInfoResource(entity.getStepExecution(), entity.getTimeZone());
+    }
 }

@@ -25,45 +25,45 @@ import org.springframework.batch.admin.domain.StepExecutionInfo;
 import org.springframework.batch.admin.domain.StepExecutionInfoResource;
 import org.springframework.batch.admin.web.BatchJobExecutionsController;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 /**
- * Knows how to build a REST resource out of our domain model {@link org.springframework.batch.admin.domain.JobExecutionInfo}.
+ * Knows how to build a REST resource out of our domain model
+ * {@link org.springframework.batch.admin.domain.JobExecutionInfo}.
  * 
  * @author Ilayaperumal Gopinathan
  */
 public class JobExecutionInfoResourceAssembler extends
-		ResourceAssemblerSupport<JobExecutionInfo, JobExecutionInfoResource> {
+        RepresentationModelAssemblerSupport<JobExecutionInfo, JobExecutionInfoResource> {
 
-	private StepExecutionInfoResourceAssembler stepExecutionInfoResourceAssembler =
-			new StepExecutionInfoResourceAssembler();
+    private StepExecutionInfoResourceAssembler stepExecutionInfoResourceAssembler = new StepExecutionInfoResourceAssembler();
 
-	public JobExecutionInfoResourceAssembler() {
-		super(BatchJobExecutionsController.class, JobExecutionInfoResource.class);
-	}
+    public JobExecutionInfoResourceAssembler() {
+        super(BatchJobExecutionsController.class, JobExecutionInfoResource.class);
+    }
 
-	@Override
-	public JobExecutionInfoResource toResource(JobExecutionInfo entity) {
-		return createResourceWithId(entity.getJobExecution().getId(), entity);
-	}
+    @Override
+    public JobExecutionInfoResource toModel(JobExecutionInfo entity) {
+        return createModelWithId(entity.getJobExecution().getId(), entity);
+    }
 
-	@Override
-	protected JobExecutionInfoResource instantiateResource(JobExecutionInfo entity) {
-		Collection<StepExecutionInfoResource> stepExecutionInfoResources =
-				new ArrayList<StepExecutionInfoResource>(entity.getStepExecutionCount());
+    @Override
+    protected JobExecutionInfoResource instantiateModel(JobExecutionInfo entity) {
+        Collection<StepExecutionInfoResource> stepExecutionInfoResources = new ArrayList<StepExecutionInfoResource>(
+                entity.getStepExecutionCount());
 
-		if(entity.getStepExecutionCount() > 0) {
-			for (StepExecution stepExecution : entity.getJobExecution().getStepExecutions()) {
-				stepExecutionInfoResources.add(
-						stepExecutionInfoResourceAssembler.toResource(new StepExecutionInfo(stepExecution, entity.getTimeZone())));
-			}
-		}
+        if (entity.getStepExecutionCount() > 0) {
+            for (StepExecution stepExecution : entity.getJobExecution().getStepExecutions()) {
+                stepExecutionInfoResources.add(
+                        stepExecutionInfoResourceAssembler
+                                .toModel(new StepExecutionInfo(stepExecution, entity.getTimeZone())));
+            }
+        }
 
-		JobExecutionInfoResource jobExecutionInfoResource =
-				new JobExecutionInfoResource(entity.getJobExecution(), entity.getTimeZone());
+        JobExecutionInfoResource jobExecutionInfoResource = new JobExecutionInfoResource(entity.getJobExecution(),
+                entity.getTimeZone());
 
-		jobExecutionInfoResource.setStepExecutions(stepExecutionInfoResources);
-		return jobExecutionInfoResource;
-	}
+        jobExecutionInfoResource.setStepExecutions(stepExecutionInfoResources);
+        return jobExecutionInfoResource;
+    }
 }

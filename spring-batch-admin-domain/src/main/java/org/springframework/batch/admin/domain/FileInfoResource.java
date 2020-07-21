@@ -17,52 +17,52 @@ package org.springframework.batch.admin.domain;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.RepresentationModel;
 
 /**
  * @author Michael Minella
  */
 @XmlRootElement
-public class FileInfoResource extends ResourceSupport {
+public class FileInfoResource extends RepresentationModel<FileInfoResource> {
 
-	private String timestamp;
+    private String timestamp;
 
-	private String path;
+    private String path;
 
-	private String shortPath;
+    private String shortPath;
 
-	private boolean local;
+    private boolean local;
 
-	private int deleteCount = 0;
+    private int deleteCount = 0;
 
-	public FileInfoResource() {
-	}
+    public FileInfoResource() {
+    }
 
-	public FileInfoResource(String timestamp, String path, String shortPath, boolean local, int deleteCount) {
-		this.timestamp = timestamp;
-		this.path = path;
-		this.shortPath = shortPath;
-		this.local = local;
-		this.deleteCount = deleteCount;
-	}
+    public FileInfoResource(String timestamp, String path, String shortPath, boolean local, int deleteCount) {
+        this.timestamp = timestamp;
+        this.path = path;
+        this.shortPath = shortPath;
+        this.local = local;
+        this.deleteCount = deleteCount;
+    }
 
-	public String getTimestamp() {
-		return timestamp;
-	}
+    public String getTimestamp() {
+        return timestamp;
+    }
 
-	public String getPath() {
-		return path;
-	}
+    public String getPath() {
+        return path;
+    }
 
-	public String getShortPath() {
-		return shortPath;
-	}
+    public String getShortPath() {
+        return shortPath;
+    }
 
-	public boolean isLocal() {
-		return local;
-	}
+    public boolean isLocal() {
+        return local;
+    }
 
-	public int getDeleteCount() {
-		return deleteCount;
-	}
+    public int getDeleteCount() {
+        return deleteCount;
+    }
 }

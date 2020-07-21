@@ -18,8 +18,7 @@ package org.springframework.batch.admin.domain;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.springframework.hateoas.ResourceSupport;
-
+import org.springframework.hateoas.RepresentationModel;
 
 /**
  * Represents Batch job info.
@@ -28,50 +27,50 @@ import org.springframework.hateoas.ResourceSupport;
  * @since 2.0
  */
 @XmlRootElement
-public class JobInfoResource extends ResourceSupport {
+public class JobInfoResource extends RepresentationModel<JobInfoResource> {
 
-	private String name;
+    private String name;
 
-	private int executionCount;
+    private int executionCount;
 
-	private boolean launchable;
+    private boolean launchable;
 
-	private boolean incrementable;
+    private boolean incrementable;
 
-	private Long jobInstanceId;
+    private Long jobInstanceId;
 
-	/**
-	 * Default constructor for serialization frameworks.
-	 */
-	protected JobInfoResource() {
-	}
+    /**
+     * Default constructor for serialization frameworks.
+     */
+    protected JobInfoResource() {
+    }
 
-	public JobInfoResource(String name, int executionCount, Long jobInstanceId, boolean launchable,
-			boolean incrementable) {
-		this.name = name;
-		this.executionCount = executionCount;
-		this.jobInstanceId = jobInstanceId;
-		this.launchable = launchable;
-		this.incrementable = incrementable;
-	}
+    public JobInfoResource(String name, int executionCount, Long jobInstanceId, boolean launchable,
+            boolean incrementable) {
+        this.name = name;
+        this.executionCount = executionCount;
+        this.jobInstanceId = jobInstanceId;
+        this.launchable = launchable;
+        this.incrementable = incrementable;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public int getExecutionCount() {
-		return executionCount;
-	}
+    public int getExecutionCount() {
+        return executionCount;
+    }
 
-	public Long getJobInstanceId() {
-		return jobInstanceId;
-	}
+    public Long getJobInstanceId() {
+        return jobInstanceId;
+    }
 
-	public boolean isLaunchable() {
-		return launchable;
-	}
+    public boolean isLaunchable() {
+        return launchable;
+    }
 
-	public boolean isIncrementable() {
-		return incrementable;
-	}
+    public boolean isIncrementable() {
+        return incrementable;
+    }
 }

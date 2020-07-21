@@ -18,12 +18,8 @@ package org.springframework.batch.admin.domain;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.admin.domain.support.ExitStatusJacksonMixIn;
 import org.springframework.batch.admin.domain.support.ISO8601DateFormatWithMilliSeconds;
 import org.springframework.batch.admin.domain.support.JobParameterJacksonMixIn;
@@ -35,56 +31,74 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.UriTemplate;
+import org.springframework.hateoas.mediatype.MessageResolver;
+import org.springframework.hateoas.mediatype.hal.DefaultCurieProvider;
+import org.springframework.hateoas.mediatype.hal.Jackson2HalModule;
+import org.springframework.hateoas.server.core.DefaultLinkRelationProvider;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * @author Michael Minella
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {AbstractSerializationTests.SerializationConfiguration.class})
+@ContextConfiguration(classes = { AbstractSerializationTests.SerializationConfiguration.class })
 public abstract class AbstractSerializationTests<T> {
 
-	@Autowired
-	protected ObjectMapper mapper;
+    @Autowired
+    protected ObjectMapper mapper;
 
-	public abstract void assertJson(String json) throws Exception;
+    public abstract void assertJson(String json) throws Exception;
 
-	public abstract void assertObject(T object) throws Exception;
+    public abstract void assertObject(T object) throws Exception;
 
-	public abstract T getSerializationValue();
+    public abstract T getSerializationValue();
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void testJsonSerialization() throws Exception {
-		T serializationValue = getSerializationValue();
-		String json = mapper.writeValueAsString(serializationValue);
-		assertJson(json);
-		T roundTrip = (T) mapper.readValue(json, serializationValue.getClass());
-		assertObject(roundTrip);
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testJsonSerialization() throws Exception {
+        T serializationValue = getSerializationValue();
+        String json = mapper.writeValueAsString(serializationValue);
+        assertJson(json);
+        T roundTrip = (T) mapper.readValue(json, serializationValue.getClass());
+        assertObject(roundTrip);
+    }
 
-	@Configuration
-	public static class SerializationConfiguration {
+    @Configuration
+    public static class SerializationConfiguration {
 
-		@Bean
-		public ObjectMapper mapper() {
-			Map<Class<?>, Class<?>> mixins = new HashMap<Class<?>, Class<?>>();
-			mixins.put(JobParameters.class, JobParametersJacksonMixIn.class);
-			mixins.put(JobParameter.class, JobParameterJacksonMixIn.class);
-			mixins.put(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
-			mixins.put(ExitStatus.class, ExitStatusJacksonMixIn.class);
+        @Bean
+        public ObjectMapper mapper() {
+            Map<Class<?>, Class<?>> mixins = new HashMap<Class<?>, Class<?>>();
+            mixins.put(JobParameters.class, JobParametersJacksonMixIn.class);
+            mixins.put(JobParameter.class, JobParameterJacksonMixIn.class);
+            mixins.put(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
+            mixins.put(ExitStatus.class, ExitStatusJacksonMixIn.class);
+//            mixins.put(Link.class, LinkMixin.class);
+//            mixins.put(RepresentationModel.class, RepresentationModelMixin.class);
 
-			ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
-					.featuresToDisable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS)
-					.dateFormat(new ISO8601DateFormatWithMilliSeconds())
-					.mixIns(mixins)
-					.build();
+            DefaultCurieProvider curieProvider = new DefaultCurieProvider("a",
+                    UriTemplate.of("http://localhost:8080/myapp/rels/{rel}"));
+            DefaultLinkRelationProvider relProvider = new DefaultLinkRelationProvider();
 
-			objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+            ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
+                    .modules(new Jackson2HalModule())
+                    .handlerInstantiator(new Jackson2HalModule.HalHandlerInstantiator(relProvider, curieProvider,
+                            MessageResolver.DEFAULTS_ONLY))
+                    .featuresToDisable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS)
+                    .dateFormat(new ISO8601DateFormatWithMilliSeconds())
+                    .mixIns(mixins)
+                    .build();
 
-			return objectMapper;
-		}
-	}
+            objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+
+            return objectMapper;
+        }
+    }
 }
