@@ -81,18 +81,6 @@
     </profile>
     <profile>
       <id>central</id>
-      <distributionManagement>
-        <snapshotRepository>
-          <id>sonatype-nexus-snapshots</id>
-          <name>Sonatype Nexus Snapshots</name>
-          <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
-        <repository>
-          <id>sonatype-nexus-staging</id>
-          <name>Nexus Release Repository</name>
-          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-      </distributionManagement>
       <build>
         <plugins>
           <plugin>
@@ -650,43 +638,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <distributionManagement>
-    <site>
-      <id>static.springframework.org</id>
-      <url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-batch-admin/trunk</url>
-    </site>
-    <repository>
-      <id>spring-release</id>
-      <name>Spring Release Repository</name>
-      <url>s3://maven.springframework.org/release</url>
-    </repository>
-    <snapshotRepository>
-      <id>spring-snapshot</id>
-      <name>Spring Snapshot Repository</name>
-      <url>https://repo.spring.io/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement>
-  <repositories>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Maven Milestone Repository</name>
-      <url>https://repo.spring.io/libs-milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>spring-snapshots</id>
-      <name>Spring Maven Snapshot Repository</name>
-      <url>https://repo.spring.io/libs-snapshot-local</url>
-    </repository>
-    <repository>
-      <id>objectstyle</id>
-      <name>ObjectStyle.org Repository</name>
-      <url>https://objectstyle.org/maven2</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 </project>
