@@ -11,7 +11,6 @@
 
 	<context:annotation-config />
 
-<!-- 
 	<bean class="org.springframework.batch.core.scope.StepScope">
 		<property name="proxyTargetClass" value="true"/>
 	</bean>
@@ -38,8 +37,6 @@
 
 	<bean id="jobExplorer" class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean"
 		p:dataSource-ref="dataSource" />
-    
-     -->
 
 	<bean id="applicationContextFactories" class="org.springframework.batch.admin.configuration.CompositeApplicationContextFactory">
 		<property name="factoryBeans">
@@ -71,7 +68,7 @@
 		</property>
 	</bean>
 
-<!-- 	<bean id="jobRegistry" class="org.springframework.batch.core.configuration.support.MapJobRegistry" /> -->
+	<bean id="jobRegistry" class="org.springframework.batch.core.configuration.support.MapJobRegistry" />
 
 	<bean id="jobService" class="org.springframework.batch.admin.service.SimpleJobServiceFactoryBean">
 		<property name="jobRepository" ref="jobRepository" />
@@ -82,14 +79,14 @@
 		<property name="transactionManager" ref="transactionManager"/>
 	</bean>
 
-<!-- 	<bean id="jobBuilderFactory" class="org.springframework.batch.core.configuration.annotation.JobBuilderFactory"> -->
-<!-- 		<constructor-arg ref="jobRepository"/> -->
-<!-- 	</bean> -->
+	<bean id="jobBuilderFactory" class="org.springframework.batch.core.configuration.annotation.JobBuilderFactory">
+		<constructor-arg ref="jobRepository"/>
+	</bean>
 
-<!-- 	<bean id="stepBuilderFactory" class="org.springframework.batch.core.configuration.annotation.StepBuilderFactory"> -->
-<!-- 		<constructor-arg index="0" ref="jobRepository"/> -->
-<!-- 		<constructor-arg index="1" ref="transactionManager"/> -->
-<!-- 	</bean> -->
+	<bean id="stepBuilderFactory" class="org.springframework.batch.core.configuration.annotation.StepBuilderFactory">
+		<constructor-arg index="0" ref="jobRepository"/>
+		<constructor-arg index="1" ref="transactionManager"/>
+	</bean>
 
 	<task:scheduled-tasks>
 		<task:scheduled ref="jobService" method="removeInactiveExecutions" fixed-delay="${batch.job.service.reaper.interval}"/>
