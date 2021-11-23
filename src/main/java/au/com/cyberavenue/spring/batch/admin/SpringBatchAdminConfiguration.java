@@ -1,11 +1,8 @@
-package au.com.energyq.spring.batch.admin;
+package au.com.cyberavenue.spring.batch.admin;
 
 import javax.sql.DataSource;
 
 import org.springframework.batch.admin.service.SimpleJobServiceFactoryBean;
-import org.springframework.batch.admin.web.JobController;
-import org.springframework.batch.admin.web.JobExecutionController;
-import org.springframework.batch.admin.web.StepExecutionController;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -38,21 +35,6 @@ public class SpringBatchAdminConfiguration {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
-
-    @Bean
-    public JobController jobController() {
-        return new JobController();
-    }
-
-    @Bean
-    public JobExecutionController jobExecutionController() {
-        return new JobExecutionController();
-    }
-
-    @Bean
-    public StepExecutionController stepExecutionController() {
-        return new StepExecutionController();
-    }
 
     @Bean
     public TaskExecutor batchAdminTaskExecutor() {

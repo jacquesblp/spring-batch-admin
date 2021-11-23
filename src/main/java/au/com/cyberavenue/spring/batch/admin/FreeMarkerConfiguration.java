@@ -1,4 +1,4 @@
-package au.com.energyq.spring.batch.admin;
+package au.com.cyberavenue.spring.batch.admin;
 
 import java.util.HashMap;
 import java.util.Map;

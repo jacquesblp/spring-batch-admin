@@ -1,4 +1,4 @@
-package au.com.energyq.spring.batch.admin;
+package au.com.cyberavenue.spring.batch.admin;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

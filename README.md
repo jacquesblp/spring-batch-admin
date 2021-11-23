@@ -1,5 +1,3 @@
-# This is a clone of the [Spring Batch Admin](https://github.com/spring-attic/spring-batch-admin) project and replaces the [batch-console](https://bitbucket:7480/projects/DJP/repos/dms-batch-1.0/browse/batch-console) project used in weblogic 11g.  This provides a web application console for spring batch and is used by the [dms-customer-sync](https://bitbucket:7480/projects/DCJPC/repos/dms-customer-sync-5.0/browse) project.
+# [Spring Batch Admin]...for Spring Boot
 
-The spring-batch-admin project provides a web application and API for managing and monitoring [Spring Batch](https://projects.spring.io/spring-batch/) jobs.  The application consists of a web UI using Spring MVC, a Java service API and a RESTful (JSON) API.  The web application is highly customizable, and is an ideal platform for deploying Spring Batch jobs.  It can also be used to monitor jobs running in other processes.
-
-This project will be updated as required to support the latest version of spring boot.
+The spring-batch-admin project provides an html web application for managing and monitoring [Spring Batch](https://projects.spring.io/spring-batch/) jobs.  The application consists of a customizable web UI using Spring MVC and a Java service API.  
