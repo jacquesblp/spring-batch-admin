@@ -1,0 +1,61 @@
+= Spring Batch Admin for Spring Boot
+:toc: left
+
+== About
+The spring-batch-admin project provides an html web application for managing and monitoring https://projects.spring.io/spring-batch[Spring Batch] jobs.  The application consists of a customizable web UI using Spring MVC and a Java service API.  
+
+This is a fork of the https://github.com/spring-attic/spring-batch-admin[Spring Batch Admin] project which has been significantly restructured and simplified to provide only the controllers related to spring batch jobs, executions and steps and to only provide html responses from the controllers.  Some of the features removed include...
+
+* json apis
+* hateos 
+* rss
+* spring-integration functionality
+* The ability to upload batch jobs
+* xml configuration.  All configuration is now java based.
+
+== Getting Started
+
+The following section is a quick start guide for embedding **Spring Batch Admin** into a spring boot
+application that contains spring batch jobs.
+
+=== Pre Requisites
+
+_Spring Batch Admin_ requires the following beans to be created within your project...
+
+* @Autowired private JobRepository jobRepository;
+* @Autowired private DataSource dataSource;
+* @Autowired private JobExplorer jobExplorer;
+* @Autowired private JobRegistry jobRegistry;
+* @Autowired private PlatformTransactionManager transactionManager;
+
+Most of these beans will be created by the _@EnableBatchProcessing_ annotation
+
+=== Maven Dependencies
+
+The following dependency has to added to your project.
+
+[source,xml]
+----
+<dependency>
+    <groupId>au.com.cyberavenue</groupId>
+    <artifactId>spring-batch-admin</artifactId>
+    <version>${spring-batch-admin.version}</version>
+</dependency>
+----
+
+=== Enable Spring Batch Admin 
+
+In order to enable the Spring Batch Admin console, the annotation _@EnableSpringBatchAdmin_ has to be added to one of the _@Configuration_ classes.
+
+[source,java]
+----
+@EnableBatchProcessing
+@EnableSpringBatchAdmin
+@SpringBootApplication
+public class SpringBatchAdminApplication {
+
+}
+----
+
+If you run your spring boot application, you should be able to view the _Spring Batch Admin_ console by navigating to _<context_path>/jobs_ in your web browser.
+
