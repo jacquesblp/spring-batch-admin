@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.com.cyberavenue</groupId>
   <artifactId>spring-batch-admin</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>Spring Batch Admin for Spring Boot</name>
   <url>https://github.com/httpants/spring-batch-admin</url>
   <description>A web user interface for managing spring batch jobs</description>
