@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.com.cyberavenue</groupId>
   <artifactId>spring-batch-admin</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>Spring Batch Admin for Spring Boot</name>
   <url>https://github.com/httpants/spring-batch-admin</url>
   <description>A web user interface for managing spring batch jobs</description>
@@ -28,7 +27,7 @@
     <url>https://github.com/httpants/spring-batch-admin</url>
     <connection>scm:git:https://github.com/httpants/spring-batch-admin.git</connection>
     <developerConnection>scm:git:https://github.com/httpants/spring-batch-admin.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>spring-batch-admin-0.0.1</tag>
   </scm>
 
   <distributionManagement>
