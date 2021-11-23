@@ -1,202 +1,42 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>au.com.energyq.dms.batch</groupId>
+  <groupId>au.com.cyberavenue</groupId>
   <artifactId>spring-batch-admin</artifactId>
-  <name>Spring Batch Admin</name>
-  <description>A set of services (Java, JSON) and a UI (webapp) for managing and launching Spring Batch jobs.</description>
-  <version>5.0.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  
-  <scm>
-    <url>https://bitbucket:7480/projects/DCJPC/repos/spring-batch-admin</url>
-    <connection>scm:git:git://git@bitbucket:7489/dcjpc/spring-batch-admin.git</connection>
-    <developerConnection>scm:git:ssh://git@bitbucket:7489/dcjpc/spring-batch-admin.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
+  <version>3.0.0-SNAPSHOT</version>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- dist.* properties are used by the antrun tasks below -->
-    <dist.id>spring-batch-admin</dist.id>
-    <dist.name>Spring Batch Admin</dist.name>
-    <dist.key>BATCHADM</dist.key>
-    <dist.version>${project.version}</dist.version>
-    <dist.finalName>${dist.id}-${dist.version}</dist.finalName>
-    <dist.fileName>${dist.finalName}.zip</dist.fileName>
-    <dist.filePath>target/${dist.fileName}</dist.filePath>
-    <dist.bucketName>dist.springframework.org</dist.bucketName>
-    <!-- these properties should be in ~/.m2/settings.xml <dist.accessKey>s3 access key</dist.accessKey> <dist.secretKey>s3 secret key</dist.secretKey> -->
+    <spring-boot.version>2.3.1.RELEASE</spring-boot.version>
+    <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
   </properties>
   
-  <modules>
-    <module>spring-batch-admin-parent</module>
-    <module>spring-batch-admin-resources</module>
-    <module>spring-batch-admin-manager</module>
-    <module>spring-batch-admin-domain</module>
-    <module>spring-batch-admin-sample</module>
-  </modules>
-
-  <build>
-    <extensions>
-      <extension>
-        <groupId>org.springframework.build.aws</groupId>
-        <artifactId>org.springframework.build.aws.maven</artifactId>
-        <version>3.0.0.RELEASE</version>
-      </extension>
-    </extensions>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.5</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <dependencies>
-            <dependency>
-              <groupId>org.apache.ant</groupId>
-              <artifactId>ant</artifactId>
-              <version>1.7.0</version>
-            </dependency>
-            <dependency>
-              <groupId>org.apache.ant</groupId>
-              <artifactId>ant-apache-regexp</artifactId>
-              <version>1.7.0</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <junitArtifactName>junit:junit</junitArtifactName>
-          </configuration>
-        </plugin>
-        <plugin>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <inherited>false</inherited>
-          <configuration>
-            <descriptors>
-              <descriptor>src/assembly/dist.xml</descriptor>
-            </descriptors>
-            <appendAssemblyId>false</appendAssemblyId>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.doxia</groupId>
-        <artifactId>doxia-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <phase>site</phase>
-            <goals>
-              <goal>render-books</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <books>
-            <book>
-              <directory>src/books</directory>
-              <descriptor>src/books/reference.xml</descriptor>
-              <formats>
-                <format>
-                  <id>pdf</id>
-                </format>
-                <format>
-                  <id>xhtml</id>
-                </format>
-                <format>
-                  <id>xdoc</id>
-                </format>
-              </formats>
-            </book>
-          </books>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-utils</artifactId>
-            <version>1.5.5</version>
-          </dependency>
-          <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-container-default</artifactId>
-            <version>1.5.5</version>
-          </dependency>
-          <dependency>
-            <groupId>org.apache.maven.doxia</groupId>
-            <artifactId>doxia-decoration-model</artifactId>
-            <version>1.2</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>site</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks>
-                <echo>Copying image files...</echo>
-                <copy todir="${basedir}/target/generated-site/pdf/reference">
-                  <fileset dir="${basedir}/src/books/reference/resources">
-                    <include name="**/*.png" />
-                    <include name="**/*.gif" />
-                    <include name="**/*.jpg" />
-                  </fileset>
-                </copy>
-                <copy todir="${basedir}/target/site/reference">
-                  <fileset dir="${basedir}/src/books/reference/resources">
-                    <include name="**/*.png" />
-                    <include name="**/*.gif" />
-                    <include name="**/*.jpg" />
-                  </fileset>
-                </copy>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
-            <id>post-site</id>
-            <!-- N.B. you have to ask for "mvn post-site" to get this -->
-            <phase>post-site</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks>
-                <echo>Copying generated files...</echo>
-                <copy todir="${basedir}/target/site">
-                  <fileset dir="${basedir}/target/generated-site/xhtml">
-                    <include name="**/*.xhtml" />
-                  </fileset>
-                  <fileset dir="${basedir}/target/generated-site/pdf">
-                    <include name="**/*.pdf" />
-                  </fileset>
-                </copy>
-              </tasks>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-freemarker</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-batch</artifactId>
+    </dependency>
+  </dependencies>
   
 </project>
