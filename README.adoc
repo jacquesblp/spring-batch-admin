@@ -2,7 +2,7 @@
 :toc: left
 
 == About
-The spring-batch-admin project provides an html web application for managing and monitoring [Spring Batch](https://projects.spring.io/spring-batch/) jobs.  The application consists of a customizable web UI using Spring MVC and a Java service API.  
+The spring-batch-admin project provides an html web application for managing and monitoring https://projects.spring.io/spring-batch[Spring Batch] jobs.  The application consists of a customizable web UI using Spring MVC and a Java service API.  
 
 This is a fork of the https://github.com/spring-attic/spring-batch-admin[Spring Batch Admin] project which has been significantly restructured and simplified to provide only the controllers related to spring batch jobs, executions and steps and to only provide html responses from the controllers.  Some of the features removed include...
 * json apis
