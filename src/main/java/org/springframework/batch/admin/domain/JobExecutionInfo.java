@@ -19,6 +19,9 @@
 package org.springframework.batch.admin.domain;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -32,9 +35,10 @@ import org.springframework.batch.core.converter.JobParametersConverter;
 
 public class JobExecutionInfo {
 
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	private DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
 	private SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -92,16 +96,20 @@ public class JobExecutionInfo {
 
 		// Duration is always in GMT
 		durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		// The others can be localized
-		timeFormat.setTimeZone(timeZone);
-		dateFormat.setTimeZone(timeZone);
 		if (jobExecution.getStartTime() != null) {
 			this.startDate = dateFormat.format(jobExecution.getStartTime());
 			this.startTime = timeFormat.format(jobExecution.getStartTime());
-			Date endTime = jobExecution.getEndTime() != null ? jobExecution.getEndTime() : new Date();
-			this.duration = durationFormat.format(new Date(endTime.getTime() - jobExecution.getStartTime().getTime()));
+			Date endTime = jobExecution.getEndTime() != null ? ldtToDate(jobExecution.getEndTime()) : new Date();
+			this.duration = durationFormat.format(new Date(endTime.getTime() - ldtToDate(jobExecution.getStartTime()).getTime()));
 		}
 
+	}
+
+	private Date ldtToDate(LocalDateTime ldt) {
+		if (ldt == null) {
+			return null;
+		}
+		return Date.from(ldt.toInstant(ZoneOffset.UTC));
 	}
 
 	public TimeZone getTimeZone() {

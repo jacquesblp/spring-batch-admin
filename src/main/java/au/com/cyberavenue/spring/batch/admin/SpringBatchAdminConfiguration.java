@@ -10,7 +10,9 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.repository.dao.DefaultExecutionContextSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -66,8 +68,9 @@ public class SpringBatchAdminConfiguration {
         return postProcessor;
     }
 
-    @Bean
-    public SimpleJobServiceFactoryBean jobService() {
+	@Bean
+	@DependsOnDatabaseInitialization
+	public SimpleJobServiceFactoryBean jobService() {
         SimpleJobServiceFactoryBean simpleJobServiceFactory = new SimpleJobServiceFactoryBean();
         simpleJobServiceFactory.setJobRepository(jobRepository);
         simpleJobServiceFactory.setJobLauncher(batchAdminjobLauncher());

@@ -19,6 +19,9 @@
 package org.springframework.batch.admin.domain;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -27,9 +30,9 @@ import org.springframework.batch.core.StepExecution;
 
 public class StepExecutionInfo {
 
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
 	private SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -81,16 +84,22 @@ public class StepExecutionInfo {
 		this.jobExecutionId = stepExecution.getJobExecutionId();
 		// Duration is always in GMT
 		durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		timeFormat.setTimeZone(timeZone);
-		dateFormat.setTimeZone(timeZone);
 		if (stepExecution.getStartTime() != null) {
 			this.startDate = dateFormat.format(stepExecution.getStartTime());
 			this.startTime = timeFormat.format(stepExecution.getStartTime());
-			Date endTime = stepExecution.getEndTime() != null ? stepExecution.getEndTime() : new Date();
-			this.durationMillis = endTime.getTime() - stepExecution.getStartTime().getTime();
+			Date endTime = stepExecution.getEndTime() != null ? ldtToDate(stepExecution.getEndTime()) : new Date();
+			this.durationMillis = endTime.getTime() - ldtToDate(stepExecution.getStartTime()).getTime();
 			this.duration = durationFormat.format(new Date(durationMillis));
 		}
 
+	}
+
+
+	private Date ldtToDate(LocalDateTime ldt) {
+		if (ldt == null) {
+			return null;
+		}
+		return Date.from(ldt.toInstant(ZoneOffset.UTC));
 	}
 
 	public Long getId() {

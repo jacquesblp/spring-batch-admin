@@ -17,6 +17,8 @@ package org.springframework.batch.admin.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -168,8 +170,13 @@ public class JdbcSearchableJobExecutionDao extends JdbcJobExecutionDao implement
 					new JobExecutionRowMapper(), jobName);
 		}
 		try {
-			Long startAfterValue = getJdbcTemplate().queryForObject(
-					byJobNamePagingQueryProvider.generateJumpToItemQuery(start, count), Long.class, jobName);
+			Long startAfterValue = getJdbcTemplate().query(byJobNamePagingQueryProvider.generateFirstPageQuery(start + count),
+							new JobExecutionRowMapper(), jobName)
+					.stream()
+					.skip(Math.max(0, start - 1))
+					.map(entry -> entry.getJobId())
+					.findFirst().orElse(0L);
+
 			return getJdbcTemplate().query(byJobNamePagingQueryProvider.generateRemainingPagesQuery(count),
 					new JobExecutionRowMapper(), jobName, startAfterValue);
 		}
@@ -188,10 +195,16 @@ public class JdbcSearchableJobExecutionDao extends JdbcJobExecutionDao implement
 					new JobExecutionRowMapper());
 		}
 		try {
-			Long startAfterValue = getJdbcTemplate().queryForObject(
-					allExecutionsPagingQueryProvider.generateJumpToItemQuery(start, count), Long.class);
+//			Long startAfterValue = getJdbcTemplate().queryForObject(
+//					allExecutionsPagingQueryProvider.generateJumpToItemQuery(start, count), Long.class);
+			Long startAfterValue = getJdbcTemplate().query(allExecutionsPagingQueryProvider.generateFirstPageQuery(start + count),
+					new JobExecutionRowMapper()).stream()
+					.skip(Math.max(0, start - 1))
+					.map(entry -> entry.getId())
+					.findFirst().orElse(0L);
 			return getJdbcTemplate().query(allExecutionsPagingQueryProvider.generateRemainingPagesQuery(count),
 					new JobExecutionRowMapper(), startAfterValue);
+					//.subList(start, start + count);
 		}
 		catch (IncorrectResultSizeDataAccessException e) {
 			return Collections.emptyList();
@@ -235,14 +248,19 @@ public class JdbcSearchableJobExecutionDao extends JdbcJobExecutionDao implement
 			jobExecution = new JobExecution(jobInstance, jobParameters);
 			jobExecution.setId(id);
 
-			jobExecution.setStartTime(rs.getTimestamp(2));
-			jobExecution.setEndTime(rs.getTimestamp(3));
+			jobExecution.setStartTime(tsToLocalDateTime(rs.getTimestamp(2)));
+			jobExecution.setEndTime(tsToLocalDateTime(rs.getTimestamp(3)));
 			jobExecution.setStatus(BatchStatus.valueOf(rs.getString(4)));
 			jobExecution.setExitStatus(new ExitStatus(rs.getString(5), rs.getString(6)));
-			jobExecution.setCreateTime(rs.getTimestamp(7));
-			jobExecution.setLastUpdated(rs.getTimestamp(8));
+			jobExecution.setCreateTime(tsToLocalDateTime(rs.getTimestamp(7)));
+			jobExecution.setLastUpdated(tsToLocalDateTime(rs.getTimestamp(8)));
 			jobExecution.setVersion(rs.getInt(9));
 			return jobExecution;
+		}
+
+
+		private LocalDateTime tsToLocalDateTime(Timestamp ts) {
+			return ts == null ? null : ts.toLocalDateTime();
 		}
 
 	}

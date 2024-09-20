@@ -60,7 +60,7 @@ public class CumulativeHistory {
 
 	@Override
 	public String toString() {
-		return String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", count, min, max, getMean(),
+		return "[N=%d, min=%f, max=%f, mean=%f, sigma=%f]".formatted(count, min, max, getMean(),
 				getStandardDeviation());
 	}
 

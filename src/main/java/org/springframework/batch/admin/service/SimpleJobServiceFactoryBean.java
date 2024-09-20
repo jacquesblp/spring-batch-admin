@@ -26,9 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.configuration.ListableJobLocator;
 import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.jsr.JsrJobParametersConverter;
-import org.springframework.batch.core.jsr.launch.JsrJobOperator;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
@@ -37,7 +36,6 @@ import org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStr
 import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.batch.core.repository.dao.JdbcJobExecutionDao;
 import org.springframework.batch.core.repository.dao.JdbcStepExecutionDao;
-import org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer;
 import org.springframework.batch.item.database.support.DataFieldMaxValueIncrementerFactory;
 import org.springframework.batch.item.database.support.DefaultDataFieldMaxValueIncrementerFactory;
 import org.springframework.batch.support.DatabaseType;
@@ -304,10 +302,11 @@ public class SimpleJobServiceFactoryBean implements FactoryBean<JobService>, Ini
      */
     @Override
     public JobService getObject() throws Exception {
-        JsrJobParametersConverter jobParametersConverter = new JsrJobParametersConverter(dataSource);
-        jobParametersConverter.afterPropertiesSet();
-        JsrJobOperator jsrJobOperator = new JsrJobOperator(jobExplorer, jobRepository, jobParametersConverter,
-                transactionManager);
+        SimpleJobOperator jsrJobOperator = new SimpleJobOperator();
+        jsrJobOperator.setJobLauncher(jobLauncher);
+        jsrJobOperator.setJobRegistry(jobLocator);
+        jsrJobOperator.setJobExplorer(jobExplorer);
+        jsrJobOperator.setJobRepository(jobRepository);
         jsrJobOperator.afterPropertiesSet();
         return new SimpleJobService(createJobInstanceDao(), createJobExecutionDao(), createStepExecutionDao(),
                 jobRepository, jobLauncher, jobLocator, createExecutionContextDao(), jsrJobOperator);

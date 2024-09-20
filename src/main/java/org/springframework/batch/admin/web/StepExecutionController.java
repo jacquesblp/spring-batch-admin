@@ -37,10 +37,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -76,8 +75,8 @@ public class StepExecutionController {
 	public StepExecutionController() {
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}/steps", method = RequestMethod.GET)
-	public String list(Model model, @PathVariable Long jobExecutionId, @ModelAttribute("date") Date date,
+	@GetMapping("/jobs/executions/{jobExecutionId}/steps")
+	public String list(Model model, @PathVariable Long jobExecutionId, @ModelAttribute Date date,
 			Errors errors) {
 
 		Collection<StepExecutionInfo> result = new ArrayList<StepExecutionInfo>();
@@ -97,9 +96,9 @@ public class StepExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}", method = RequestMethod.GET)
+	@GetMapping("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}")
 	public String detail(Model model, @PathVariable Long jobExecutionId, @PathVariable Long stepExecutionId,
-			@ModelAttribute("date") Date date, Errors errors) {
+			@ModelAttribute Date date, Errors errors) {
 
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
@@ -116,9 +115,9 @@ public class StepExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/progress", method = RequestMethod.GET)
+	@GetMapping("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/progress")
 	public String history(Model model, @PathVariable Long jobExecutionId, @PathVariable Long stepExecutionId,
-			@ModelAttribute("date") Date date, Errors errors) {
+			@ModelAttribute Date date, Errors errors) {
 
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
@@ -155,9 +154,9 @@ public class StepExecutionController {
 		return stepExecutionHistory;
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/execution-context", method = RequestMethod.GET)
+	@GetMapping("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/execution-context")
 	public String getStepExecutionContext(Model model, @PathVariable Long jobExecutionId,
-			@PathVariable Long stepExecutionId, @ModelAttribute("date") Date date, Errors errors) {
+			@PathVariable Long stepExecutionId, @ModelAttribute Date date, Errors errors) {
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
 			Map<String, Object> executionMap = new HashMap<String, Object>();

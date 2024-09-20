@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.com.cyberavenue</groupId>
   <artifactId>spring-batch-admin</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <name>Spring Batch Admin for Spring Boot</name>
   <url>https://github.com/httpants/spring-batch-admin</url>
   <description>A web user interface for managing spring batch jobs</description>
@@ -43,10 +43,10 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-boot.version>2.3.1.RELEASE</spring-boot.version>
+    <spring-boot.version>3.0.13</spring-boot.version>
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
   </properties>
 
   <dependencyManagement>

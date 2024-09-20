@@ -16,18 +16,17 @@
 package org.springframework.batch.admin.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
-import javax.batch.operations.JobOperator;
+
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,11 +38,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.ListableJobLocator;
-import org.springframework.batch.core.launch.JobExecutionNotRunningException;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.NoSuchJobException;
-import org.springframework.batch.core.launch.NoSuchJobExecutionException;
-import org.springframework.batch.core.launch.NoSuchJobInstanceException;
+import org.springframework.batch.core.launch.*;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -153,8 +148,8 @@ public class SimpleJobService implements JobService, DisposableBean {
         } catch (NoSuchJobException e) {
             // expected
         }
-        if (job instanceof StepLocator) {
-            Collection<String> stepNames = ((StepLocator) job).getStepNames();
+        if (job instanceof StepLocator locator) {
+            Collection<String> stepNames = locator.getStepNames();
             missingStepNames.addAll(stepNames);
             logger.debug("Added step executions from job: " + missingStepNames);
         }
@@ -232,15 +227,11 @@ public class SimpleJobService implements JobService, DisposableBean {
             }
         } else {
             if (jsrJobOperator != null) {
-                if (params != null) {
-                    jobExecution = new JobExecution(jsrJobOperator.restart(jobExecutionId, params.toProperties()));
-                } else {
-                    jobExecution = new JobExecution(jsrJobOperator.restart(jobExecutionId, new Properties()));
-                }
+                jobExecution = new JobExecution(jsrJobOperator.restart(jobExecutionId));
             } else {
                 throw new NoSuchJobException(
-                    String.format("Can't find job associated with job execution id %s to restart",
-                        String.valueOf(jobExecutionId)));
+						"Can't find job associated with job execution id %s to restart".formatted(
+								String.valueOf(jobExecutionId)));
             }
         }
 
@@ -249,8 +240,8 @@ public class SimpleJobService implements JobService, DisposableBean {
 
     @Override
     public JobExecution launch(String jobName, JobParameters jobParameters)
-        throws NoSuchJobException, JobExecutionAlreadyRunningException, JobRestartException,
-        JobInstanceAlreadyCompleteException, JobParametersInvalidException {
+            throws NoSuchJobException, JobExecutionAlreadyRunningException, JobRestartException,
+            JobInstanceAlreadyCompleteException, JobParametersInvalidException, JobInstanceAlreadyExistsException {
 
         JobExecution jobExecution = null;
 
@@ -281,7 +272,7 @@ public class SimpleJobService implements JobService, DisposableBean {
 //                        .getJobExecution(jsrJobOperator.start(jobName, jobParameters.toProperties()));
                 jobExecution = new JobExecution(jsrJobOperator.start(jobName, jobParameters.toProperties()));
             } else {
-                throw new NoSuchJobException(String.format("Unable to find job %s to launch", String.valueOf(jobName)));
+                throw new NoSuchJobException("Unable to find job %s to launch".formatted(String.valueOf(jobName)));
             }
         }
 
@@ -361,7 +352,7 @@ public class SimpleJobService implements JobService, DisposableBean {
     }
 
     @Override
-    public int stopAll() {
+    public int stopAll() throws NoSuchJobExecutionException, JobExecutionNotRunningException {
         Collection<JobExecution> result = jobExecutionDao.getRunningJobExecutions();
         Collection<String> jsrJobNames = getJsrJobNames();
 
@@ -369,7 +360,7 @@ public class SimpleJobService implements JobService, DisposableBean {
             if (jsrJobOperator != null && jsrJobNames.contains(jobExecution.getJobInstance().getJobName())) {
                 jsrJobOperator.stop(jobExecution.getId());
             } else {
-                jobExecution.stop();
+                jobExecution.upgradeStatus(BatchStatus.STOPPED);
                 jobRepository.update(jobExecution);
             }
         }
@@ -393,7 +384,7 @@ public class SimpleJobService implements JobService, DisposableBean {
             jsrJobOperator.stop(jobExecutionId);
             jobExecution = getJobExecution(jobExecutionId);
         } else {
-            jobExecution.stop();
+            jobExecution.upgradeStatus(BatchStatus.STOPPED);
             jobRepository.update(jobExecution);
         }
         return jobExecution;
@@ -420,7 +411,7 @@ public class SimpleJobService implements JobService, DisposableBean {
             jobExecution = getJobExecution(jobExecutionId);
         } else {
             jobExecution.upgradeStatus(BatchStatus.ABANDONED);
-            jobExecution.setEndTime(new Date());
+            jobExecution.setEndTime(LocalDateTime.now());
             jobRepository.update(jobExecution);
         }
 
@@ -528,8 +519,8 @@ public class SimpleJobService implements JobService, DisposableBean {
     public Collection<String> getStepNamesForJob(String jobName) throws NoSuchJobException {
         try {
             Job job = jobLocator.getJob(jobName);
-            if (job instanceof StepLocator) {
-                return ((StepLocator) job).getStepNames();
+            if (job instanceof StepLocator locator) {
+                return locator.getStepNames();
             }
         } catch (NoSuchJobException e) {
             // ignore

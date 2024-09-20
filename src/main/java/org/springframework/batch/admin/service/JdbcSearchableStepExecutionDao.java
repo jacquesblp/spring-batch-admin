@@ -17,6 +17,8 @@ package org.springframework.batch.admin.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -143,8 +145,12 @@ public class JdbcSearchableStepExecutionDao extends JdbcStepExecutionDao impleme
 		}
 		else {
 			try {
-				Long startAfterValue = getJdbcTemplate().queryForObject(
-						queryProvider.generateJumpToItemQuery(start, count), Long.class, jobName, stepName);
+				Long startAfterValue = getJdbcTemplate().query(queryProvider.generateFirstPageQuery(start + count),
+								new StepExecutionRowMapper(), jobName, stepName)
+						.stream()
+						.skip(Math.max(0, start - 1))
+						.map(entry -> entry.getId())
+						.findFirst().orElse(0L);
 				stepExecutions = getJdbcTemplate().query(queryProvider.generateRemainingPagesQuery(count),
 						new StepExecutionRowMapper(), jobName, stepName, startAfterValue);
 			}
@@ -195,8 +201,8 @@ public class JdbcSearchableStepExecutionDao extends JdbcStepExecutionDao impleme
 		public StepExecution mapRow(ResultSet rs, int rowNum) throws SQLException {
 			StepExecution stepExecution = new StepExecution(rs.getString(2), null);
 			stepExecution.setId(rs.getLong(1));
-			stepExecution.setStartTime(rs.getTimestamp(3));
-			stepExecution.setEndTime(rs.getTimestamp(4));
+			stepExecution.setStartTime(tsToLocalDateTime(rs.getTimestamp(3)));
+			stepExecution.setEndTime(tsToLocalDateTime(rs.getTimestamp(4)));
 			stepExecution.setStatus(BatchStatus.valueOf(rs.getString(5)));
 			stepExecution.setCommitCount(rs.getInt(6));
 			stepExecution.setReadCount(rs.getInt(7));
@@ -207,9 +213,13 @@ public class JdbcSearchableStepExecutionDao extends JdbcStepExecutionDao impleme
 			stepExecution.setWriteSkipCount(rs.getInt(13));
 			stepExecution.setProcessSkipCount(rs.getInt(14));
 			stepExecution.setRollbackCount(rs.getInt(15));
-			stepExecution.setLastUpdated(rs.getTimestamp(16));
+			stepExecution.setLastUpdated(tsToLocalDateTime(rs.getTimestamp(16)));
 			stepExecution.setVersion(rs.getInt(17));
 			return stepExecution;
+		}
+
+		private LocalDateTime tsToLocalDateTime(Timestamp ts) {
+			return ts == null ? null : ts.toLocalDateTime();
 		}
 
 	}

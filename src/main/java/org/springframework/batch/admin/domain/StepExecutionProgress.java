@@ -15,6 +15,8 @@
  */
 package org.springframework.batch.admin.domain;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.springframework.batch.core.StepExecution;
@@ -68,25 +70,25 @@ public class StepExecutionProgress {
 			StepExecutionHistory stepExecutionHistory) {
 		this.stepExecution = stepExecution;
 		this.stepExecutionHistory = stepExecutionHistory;
-		Date startTime = stepExecution.getStartTime();
-		Date endTime = stepExecution.getEndTime();
+		LocalDateTime startTime = stepExecution.getStartTime();
+		LocalDateTime endTime = stepExecution.getEndTime();
 		if (endTime == null) {
-			endTime = new Date();
+			endTime = LocalDateTime.now();
 		} else {
 			isFinished = true;
 		}
 		if (startTime == null) {
-			startTime = new Date();
+			startTime = LocalDateTime.now();
 		}
-		duration = endTime.getTime() - startTime.getTime();
+		duration = Duration.between(startTime, endTime).toMillis();
 		percentageComplete = calculatePercentageComplete();
 	}
 
 	public MessageSourceResolvable getEstimatedPercentCompleteMessage() {
 
-		String defaultMessage = String
-				.format(
-						"This execution is estimated to be %.0f%% complete after %.0f ms based on %s",
+		String defaultMessage = 
+				"This execution is estimated to be %.0f%% complete after %.0f ms based on %s"
+				.formatted(
 						percentageComplete * 100, duration,
 						percentCompleteBasis.getMessage().getDefaultMessage());
 

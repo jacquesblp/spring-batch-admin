@@ -15,6 +15,8 @@
  */
 package org.springframework.batch.admin.domain;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.springframework.batch.core.StepExecution;
@@ -44,9 +46,9 @@ public class StepExecutionHistory {
 			// ignore unfinished executions
 			return;
 		}
-		Date startTime = stepExecution.getStartTime();
-		Date endTime = stepExecution.getEndTime();
-		long time = endTime.getTime()-startTime.getTime();
+		LocalDateTime startTime = stepExecution.getStartTime();
+		LocalDateTime endTime = stepExecution.getEndTime();
+		long time = Duration.between(startTime, endTime).toMillis();
 		duration.append(time);
 		if (stepExecution.getReadCount()>0) {
 			durationPerRead.append(time/stepExecution.getReadCount());

@@ -23,7 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.batch.admin.domain.JobExecutionInfo;
 import org.springframework.batch.admin.domain.JobInfo;
@@ -33,6 +33,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
@@ -43,10 +44,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
 
 /**
@@ -87,7 +85,6 @@ public class JobController {
 		this.timeZone = timeZone;
 	}
 
-	@Autowired
 	public JobController() {
 		super();
 		extensions.addAll(Arrays.asList(".html", ".json", ".rss"));
@@ -117,9 +114,9 @@ public class JobController {
 		return path;
 	}
 
-	@RequestMapping(value = "/jobs/{jobName}", method = RequestMethod.POST)
-	public String launch(ModelMap model, @ModelAttribute("jobName") String jobName,
-			@ModelAttribute("launchRequest") LaunchRequest launchRequest, Errors errors,
+	@PostMapping("/jobs/{jobName}")
+	public String launch(ModelMap model, @PathVariable String jobName,
+			@ModelAttribute LaunchRequest launchRequest, Errors errors,
 			@RequestParam(defaultValue = "execution") String origin) {
 
 		launchRequest.setJobName(jobName);
@@ -141,14 +138,16 @@ public class JobController {
 					"A job with this name and parameters already completed successfully.");
 		} catch (JobParametersInvalidException e) {
 			errors.reject("job.parameters.invalid", "The job parameters are invalid according to the configuration.");
-		}
+		} catch (JobInstanceAlreadyExistsException e) {
+			errors.reject("job.already.exists", "A job with this name and parameters already exists.");
+        }
 
-		if (!"job".equals(origin)) {
+        if (!"job".equals(origin)) {
 			// if the origin is not specified we are probably not a UI client
 			return "jobs/execution";
 		} else {
 			// In the UI we show the same page again...
-			return details(model, jobName, errors, 0, 20);
+			return details(model, jobName, jobName, errors, 0, 20);
 		}
 
 		// Not a redirect because normally it is requested by an Ajax call so
@@ -157,9 +156,9 @@ public class JobController {
 
 	}
 
-	@RequestMapping(value = "/jobs/{jobName}", method = RequestMethod.GET)
-	public String details(ModelMap model, @ModelAttribute("jobName") String jobName, Errors errors,
-			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
+	@GetMapping("/jobs/{jobName}")
+	public String details(ModelMap model, @ModelAttribute("jobName") String jobName, @PathVariable("jobName") String jobName2, Errors errors,
+						  @RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
 
 		boolean launchable = jobService.isLaunchable(jobName);
 
@@ -191,7 +190,7 @@ public class JobController {
 
 	}
 
-	@RequestMapping(value = "/jobs", method = RequestMethod.GET)
+	@GetMapping("/jobs")
 	public void jobs(ModelMap model, @RequestParam(defaultValue = "0") int startJob,
 			@RequestParam(defaultValue = "20") int pageSize) {
 		int total = jobService.countJobs();

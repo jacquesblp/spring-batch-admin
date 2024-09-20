@@ -25,10 +25,7 @@ import org.springframework.batch.core.JobParametersIncrementer;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.launch.JobExecutionNotRunningException;
-import org.springframework.batch.core.launch.NoSuchJobException;
-import org.springframework.batch.core.launch.NoSuchJobExecutionException;
-import org.springframework.batch.core.launch.NoSuchJobInstanceException;
+import org.springframework.batch.core.launch.*;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -72,8 +69,8 @@ public interface JobService {
 	 * @throws JobParametersInvalidException
 	 */
 	JobExecution launch(String jobName, JobParameters params)
-			throws NoSuchJobException, JobExecutionAlreadyRunningException, JobRestartException,
-			JobInstanceAlreadyCompleteException, JobParametersInvalidException;
+            throws NoSuchJobException, JobExecutionAlreadyRunningException, JobRestartException,
+            JobInstanceAlreadyCompleteException, JobParametersInvalidException, JobInstanceAlreadyExistsException;
 
 	/**
 	 * Get the last {@link JobParameters} used to execute a job successfully.
@@ -320,7 +317,7 @@ public interface JobService {
 	 * 
 	 * @return the number of executions affected
 	 */
-	int stopAll();
+	int stopAll() throws NoSuchJobExecutionException, JobExecutionNotRunningException;
 
 	/**
 	 * Check if a job has a {@link JobParametersIncrementer}.

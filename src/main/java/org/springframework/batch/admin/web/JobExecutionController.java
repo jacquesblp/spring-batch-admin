@@ -49,10 +49,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -100,12 +101,11 @@ public class JobExecutionController {
 		this.objectMapper = objectMapper;
 	}
 
-	@Autowired
 	public JobExecutionController() {
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}", method = RequestMethod.DELETE)
-	public String stop(Model model, @ModelAttribute("stopRequest") StopRequest stopRequest, Errors errors,
+	@DeleteMapping("/jobs/executions/{jobExecutionId}")
+	public String stop(Model model, @ModelAttribute StopRequest stopRequest, Errors errors,
 			@PathVariable Long jobExecutionId) {
 
 		stopRequest.jobExecutionId = jobExecutionId;
@@ -130,8 +130,8 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}", method = RequestMethod.DELETE, params = "abandon")
-	public String abandon(Model model, @ModelAttribute("stopRequest") StopRequest stopRequest, Errors errors,
+	@DeleteMapping(value = "/jobs/executions/{jobExecutionId}", params = "abandon")
+	public String abandon(Model model, @ModelAttribute StopRequest stopRequest, Errors errors,
 			@PathVariable Long jobExecutionId) {
 
 		stopRequest.jobExecutionId = jobExecutionId;
@@ -156,7 +156,7 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = { "/jobs/executions", "/jobs/executions.*" }, method = RequestMethod.GET)
+	@GetMapping({ "/jobs/executions", "/jobs/executions.*" })
 	public @ModelAttribute("jobExecutions") Collection<JobExecutionInfo> list(ModelMap model,
 			@RequestParam(defaultValue = "0") int startJobExecution, @RequestParam(defaultValue = "20") int pageSize) {
 
@@ -172,10 +172,10 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = { "/jobs/{jobName}/{jobInstanceId}/executions",
-			"/jobs/{jobName}/{jobInstanceId}" }, method = RequestMethod.GET)
+	@GetMapping({ "/jobs/{jobName}/{jobInstanceId}/executions",
+			"/jobs/{jobName}/{jobInstanceId}" })
 	public String listForInstance(Model model, @PathVariable String jobName, @PathVariable long jobInstanceId,
-			@ModelAttribute("date") Date date, Errors errors) {
+			@ModelAttribute Date date, Errors errors) {
 
 		JobInstance jobInstance = null;
 		try {
@@ -208,9 +208,9 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/{jobName}/{jobInstanceId}/executions", method = RequestMethod.POST)
+	@PostMapping("/jobs/{jobName}/{jobInstanceId}/executions")
 	public String restart(Model model, @PathVariable String jobName, @PathVariable long jobInstanceId,
-			@ModelAttribute("date") Date date, Errors errors) {
+			@ModelAttribute Date date, Errors errors) {
 
 		try {
 
@@ -252,17 +252,26 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/executions", method = RequestMethod.DELETE)
-	public @ModelAttribute("jobExecutions") Collection<JobExecutionInfo> stopAll(ModelMap model,
+	@DeleteMapping("/jobs/executions")
+	public @ModelAttribute("jobExecutions") Collection<JobExecutionInfo> stopAll(ModelMap model, Errors errors,
 			@RequestParam(defaultValue = "0") int startJobExecution, @RequestParam(defaultValue = "20") int pageSize) {
 
-		model.addAttribute("stoppedCount", jobService.stopAll());
-		return list(model, startJobExecution, pageSize);
+        try {
+            model.addAttribute("stoppedCount", jobService.stopAll());
+        } catch (NoSuchJobExecutionException e) {
+			errors.reject("no.such.job.execution", new Object[] { -42 },
+					"There is no such job execution (" + -42 + ")");
+			throw new RuntimeException(e);
+        } catch (JobExecutionNotRunningException e) {
+			errors.reject("job.execution.not.running", "Job exection with id=" + -42 + " is not running.");
+			throw new RuntimeException(e);
+        }
+        return list(model, startJobExecution, pageSize);
 
 	}
 
-	@RequestMapping(value = "/jobs/{jobName}/executions", method = RequestMethod.GET)
-	public String listForJob(ModelMap model, @PathVariable String jobName, @ModelAttribute("date") Date date,
+	@GetMapping("/jobs/{jobName}/executions")
+	public String listForJob(ModelMap model, @PathVariable String jobName, @ModelAttribute Date date,
 			Errors errors, @RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 
@@ -296,8 +305,8 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}", method = RequestMethod.GET)
-	public String detail(Model model, @PathVariable Long jobExecutionId, @ModelAttribute("date") Date date,
+	@GetMapping("/jobs/executions/{jobExecutionId}")
+	public String detail(Model model, @PathVariable Long jobExecutionId, @ModelAttribute Date date,
 			Errors errors) {
 
 		try {
@@ -348,8 +357,8 @@ public class JobExecutionController {
 
 	}
 
-	@RequestMapping(value = "/jobs/executions/{jobExecutionId}/execution-context", method = RequestMethod.GET)
-	public String getExecutionContext(Model model, @PathVariable Long jobExecutionId, @ModelAttribute("date") Date date,
+	@GetMapping("/jobs/executions/{jobExecutionId}/execution-context")
+	public String getExecutionContext(Model model, @PathVariable Long jobExecutionId, @ModelAttribute Date date,
 			Errors errors) {
 		try {
 			JobExecution jobExecution = jobService.getJobExecution(jobExecutionId);
