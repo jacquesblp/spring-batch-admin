@@ -38,7 +38,7 @@ The following dependency has to be added to your project.
 [source,xml]
 ----
 <dependency>
-    <groupId>au.com.cyberavenue</groupId>
+    <groupId>io.github.jacquesblp</groupId>
     <artifactId>spring-batch-admin</artifactId>
     <version>${spring-batch-admin.version}</version>
 </dependency>
