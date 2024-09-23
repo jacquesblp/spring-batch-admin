@@ -30,6 +30,7 @@ _Spring Batch Admin_ requires the following beans to be created within your proj
 
 These beans will be created by the _@EnableBatchProcessing_ annotation
 
+
 === Maven Dependencies
 
 The following dependency has to be added to your project.
@@ -59,3 +60,17 @@ public class SpringBatchAdminApplication {
 
 If you run your spring boot application, you should be able to view the _Spring Batch Admin_ console by navigating to _<context_path>/jobs_ in your web browser.
 
+==== Additional
+
+The following beans have to be created within your project...
+
+* ExecutionContextSerializer
+
+e.g.
+[source,java]
+----
+@Bean
+public ExecutionContextSerializer executionContextSerializer() {
+    return new DefaultExecutionContextSerializer();
+}
+----
