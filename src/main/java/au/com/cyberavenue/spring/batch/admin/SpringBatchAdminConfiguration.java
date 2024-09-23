@@ -12,6 +12,9 @@ import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.DefaultExecutionContextSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.batch.BatchDataSourceScriptDatabaseInitializer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,7 +64,10 @@ public class SpringBatchAdminConfiguration {
         return simpleJobLauncher;
     }
 
+    // do not instantiate when using spring boot batch starter 3.1.x
     @Bean
+    @ConditionalOnMissingClass("org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration")
+    @ConditionalOnMissingBean({JobRegistryBeanPostProcessor.class})
     public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor() {
         JobRegistryBeanPostProcessor postProcessor = new JobRegistryBeanPostProcessor();
         postProcessor.setJobRegistry(jobRegistry);

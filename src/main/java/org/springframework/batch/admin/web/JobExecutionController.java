@@ -132,7 +132,7 @@ public class JobExecutionController {
 
 	@DeleteMapping(value = "/jobs/executions/{jobExecutionId}", params = "abandon")
 	public String abandon(Model model, @ModelAttribute StopRequest stopRequest, Errors errors,
-			@PathVariable Long jobExecutionId) {
+			@PathVariable("jobExecutionId") Long jobExecutionId) {
 
 		stopRequest.jobExecutionId = jobExecutionId;
 		try {
@@ -158,7 +158,7 @@ public class JobExecutionController {
 
 	@GetMapping({ "/jobs/executions", "/jobs/executions.*" })
 	public @ModelAttribute("jobExecutions") Collection<JobExecutionInfo> list(ModelMap model,
-			@RequestParam(defaultValue = "0") int startJobExecution, @RequestParam(defaultValue = "20") int pageSize) {
+			@RequestParam(name = "startJobExecution", defaultValue = "0") int startJobExecution, @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
 
 		int total = jobService.countJobExecutions();
 		TableUtils.addPagination(model, total, startJobExecution, pageSize, "JobExecution");
@@ -174,7 +174,7 @@ public class JobExecutionController {
 
 	@GetMapping({ "/jobs/{jobName}/{jobInstanceId}/executions",
 			"/jobs/{jobName}/{jobInstanceId}" })
-	public String listForInstance(Model model, @PathVariable String jobName, @PathVariable long jobInstanceId,
+	public String listForInstance(Model model, @PathVariable("jobName") String jobName, @PathVariable("jobInstanceId") long jobInstanceId,
 			@ModelAttribute Date date, Errors errors) {
 
 		JobInstance jobInstance = null;
@@ -209,7 +209,7 @@ public class JobExecutionController {
 	}
 
 	@PostMapping("/jobs/{jobName}/{jobInstanceId}/executions")
-	public String restart(Model model, @PathVariable String jobName, @PathVariable long jobInstanceId,
+	public String restart(Model model, @PathVariable("jobName") String jobName, @PathVariable("jobInstanceId") long jobInstanceId,
 			@ModelAttribute Date date, Errors errors) {
 
 		try {
@@ -254,7 +254,7 @@ public class JobExecutionController {
 
 	@DeleteMapping("/jobs/executions")
 	public @ModelAttribute("jobExecutions") Collection<JobExecutionInfo> stopAll(ModelMap model, Errors errors,
-			@RequestParam(defaultValue = "0") int startJobExecution, @RequestParam(defaultValue = "20") int pageSize) {
+			@RequestParam(name = "startJobExecution", defaultValue = "0") int startJobExecution, @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
 
         try {
             model.addAttribute("stoppedCount", jobService.stopAll());
@@ -271,9 +271,9 @@ public class JobExecutionController {
 	}
 
 	@GetMapping("/jobs/{jobName}/executions")
-	public String listForJob(ModelMap model, @PathVariable String jobName, @ModelAttribute Date date,
-			Errors errors, @RequestParam(defaultValue = "0") int startJobExecution,
-			@RequestParam(defaultValue = "20") int pageSize) {
+	public String listForJob(ModelMap model, @PathVariable("jobName") String jobName, @ModelAttribute Date date,
+			Errors errors, @RequestParam(name = "startJobExecution", defaultValue = "0") int startJobExecution,
+			@RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
 
 		int total = startJobExecution;
 		try {
@@ -306,7 +306,7 @@ public class JobExecutionController {
 	}
 
 	@GetMapping("/jobs/executions/{jobExecutionId}")
-	public String detail(Model model, @PathVariable Long jobExecutionId, @ModelAttribute Date date,
+	public String detail(Model model, @PathVariable("jobExecutionId") Long jobExecutionId, @ModelAttribute Date date,
 			Errors errors) {
 
 		try {
@@ -358,7 +358,7 @@ public class JobExecutionController {
 	}
 
 	@GetMapping("/jobs/executions/{jobExecutionId}/execution-context")
-	public String getExecutionContext(Model model, @PathVariable Long jobExecutionId, @ModelAttribute Date date,
+	public String getExecutionContext(Model model, @PathVariable("jobExecutionId") Long jobExecutionId, @ModelAttribute Date date,
 			Errors errors) {
 		try {
 			JobExecution jobExecution = jobService.getJobExecution(jobExecutionId);

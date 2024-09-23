@@ -76,7 +76,7 @@ public class StepExecutionController {
 	}
 
 	@GetMapping("/jobs/executions/{jobExecutionId}/steps")
-	public String list(Model model, @PathVariable Long jobExecutionId, @ModelAttribute Date date,
+	public String list(Model model, @PathVariable("jobExecutionId") Long jobExecutionId, @ModelAttribute Date date,
 			Errors errors) {
 
 		Collection<StepExecutionInfo> result = new ArrayList<StepExecutionInfo>();
@@ -97,7 +97,7 @@ public class StepExecutionController {
 	}
 
 	@GetMapping("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}")
-	public String detail(Model model, @PathVariable Long jobExecutionId, @PathVariable Long stepExecutionId,
+	public String detail(Model model, @PathVariable("jobExecutionId") Long jobExecutionId, @PathVariable("stepExecutionId") Long stepExecutionId,
 			@ModelAttribute Date date, Errors errors) {
 
 		try {
@@ -116,7 +116,7 @@ public class StepExecutionController {
 	}
 
 	@GetMapping("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/progress")
-	public String history(Model model, @PathVariable Long jobExecutionId, @PathVariable Long stepExecutionId,
+	public String history(Model model, @PathVariable("jobExecutionId") Long jobExecutionId, @PathVariable("stepExecutionId") Long stepExecutionId,
 			@ModelAttribute Date date, Errors errors) {
 
 		try {
@@ -155,8 +155,8 @@ public class StepExecutionController {
 	}
 
 	@GetMapping("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/execution-context")
-	public String getStepExecutionContext(Model model, @PathVariable Long jobExecutionId,
-			@PathVariable Long stepExecutionId, @ModelAttribute Date date, Errors errors) {
+	public String getStepExecutionContext(Model model, @PathVariable("jobExecutionId") Long jobExecutionId,
+			@PathVariable("stepExecutionId") Long stepExecutionId, @ModelAttribute Date date, Errors errors) {
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
 			Map<String, Object> executionMap = new HashMap<String, Object>();

@@ -115,7 +115,7 @@ public class JobController {
 	}
 
 	@PostMapping("/jobs/{jobName}")
-	public String launch(ModelMap model, @PathVariable String jobName,
+	public String launch(ModelMap model, @PathVariable("jobName") String jobName,
 			@ModelAttribute LaunchRequest launchRequest, Errors errors,
 			@RequestParam(defaultValue = "execution") String origin) {
 
@@ -158,7 +158,7 @@ public class JobController {
 
 	@GetMapping("/jobs/{jobName}")
 	public String details(ModelMap model, @ModelAttribute("jobName") String jobName, @PathVariable("jobName") String jobName2, Errors errors,
-						  @RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
+						  @RequestParam(name = "startJobInstance", defaultValue = "0") int startJobInstance, @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
 
 		boolean launchable = jobService.isLaunchable(jobName);
 
@@ -191,8 +191,8 @@ public class JobController {
 	}
 
 	@GetMapping("/jobs")
-	public void jobs(ModelMap model, @RequestParam(defaultValue = "0") int startJob,
-			@RequestParam(defaultValue = "20") int pageSize) {
+	public void jobs(ModelMap model, @RequestParam(name = "startJob", defaultValue = "0") int startJob,
+			@RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
 		int total = jobService.countJobs();
 		TableUtils.addPagination(model, total, startJob, pageSize, "Job");
 		Collection<String> names = jobService.listJobs(startJob, pageSize);
