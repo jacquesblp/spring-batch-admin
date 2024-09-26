@@ -41,6 +41,7 @@ import org.springframework.batch.item.database.support.DefaultDataFieldMaxValueI
 import org.springframework.batch.support.DatabaseType;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
@@ -86,6 +87,8 @@ public class SimpleJobServiceFactoryBean implements FactoryBean<JobService>, Ini
     private ExecutionContextSerializer serializer;
 
     private PlatformTransactionManager transactionManager;
+
+    private ConfigurableConversionService conversionService;
 
     public void setTransactionManager(PlatformTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
@@ -256,6 +259,7 @@ public class SimpleJobServiceFactoryBean implements FactoryBean<JobService>, Ini
         dao.setTablePrefix(tablePrefix);
         dao.setClobTypeToUse(determineClobTypeToUse(this.databaseType));
         dao.setExitMessageLength(maxVarCharLength);
+        dao.setConversionService(conversionService);
         dao.afterPropertiesSet();
         return dao;
     }
@@ -335,4 +339,7 @@ public class SimpleJobServiceFactoryBean implements FactoryBean<JobService>, Ini
         return true;
     }
 
+    public void setConversionService(ConfigurableConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
 }

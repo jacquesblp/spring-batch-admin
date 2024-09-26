@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.jacquesblp</groupId>
   <artifactId>spring-batch-admin</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3-3.2.3</version>
   <name>Spring Batch Admin for Spring Boot</name>
   <url>https://github.com/jacquesblp/spring-batch-admin</url>
   <description>A web user interface for managing spring batch jobs</description>
@@ -31,7 +31,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-boot.version>3.3.4</spring-boot.version>
+    <spring-boot.version>3.1.6</spring-boot.version>
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <maven.compiler.target>17</maven.compiler.target>
     <maven.compiler.source>17</maven.compiler.source>

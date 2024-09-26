@@ -19,6 +19,7 @@ import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitializat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -44,6 +45,9 @@ public class SpringBatchAdminConfiguration {
 
     @Autowired
     private ExecutionContextSerializer executionContextSerializer;
+
+    @Autowired
+    private ConfigurableConversionService conversionService;
 
     @Bean
     public TaskExecutor batchAdminTaskExecutor() {
@@ -85,6 +89,7 @@ public class SpringBatchAdminConfiguration {
         simpleJobServiceFactory.setJobExplorer(jobExplorer);
         simpleJobServiceFactory.setTransactionManager(transactionManager);
         simpleJobServiceFactory.setSerializer(executionContextSerializer);
+        simpleJobServiceFactory.setConversionService(conversionService);
         return simpleJobServiceFactory;
     }
 }
